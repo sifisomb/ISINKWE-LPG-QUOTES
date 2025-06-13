@@ -1,0 +1,21 @@
+{
+  "name": "Isinkwe Energies Savings Calculator",
+  "short_name": "Isinkwe LPG",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#205d68",
+  "description": "Get a quick, personalised LPG savings quote for your business or home.",
+  "icons": [
+    {
+      "src": "1000026370.jpg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "1000026370.jpg",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

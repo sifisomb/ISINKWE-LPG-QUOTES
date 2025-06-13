@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Isinkwe Energies LPG Savings Calculator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#205d68">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; margin: 0; padding: 0; color: #205d68;}
+  .container { max-width: 540px; margin: 30px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(32,93,104,0.10); padding: 24px 16px;}
+  .logo { display: block; margin: 0 auto 18px auto; max-width: 260px; border-radius: 10px;}
+  .brandline {font-size: 1.6em; font-weight: bold; text-align: center; color: #205d68; margin-bottom: 18px; animation: fadeIn 2s;}
+  @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+  .form-section {margin: 20px 0;}
+  label {font-weight: 600; margin-top: 10px; display: block;}
+  input, select {margin-bottom: 15px; padding: 8px; border-radius: 6px; border: 1px solid #b2dfdb; width: 100%; box-sizing: border-box;}
+  .info-block {background: #e0f7fa; border-radius: 8px; padding: 12px 18px; color: #205d68; margin: 18px 0;}
+  .btn {background: #25D366; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 10px 8px 0 0;}
+  .email-btn {background: #205d68;}
+  .pdf-btn {background: #2ec4b6;}
+  .swap-btn {background: #ffd600; color: #205d68;}
+  .deposit-btn {background: #ffb300; color: #205d68;}
+  .links {margin-top: 12px;}
+  .links a {margin-right: 12px; color: #205d68; font-weight: bold;}
+  .highlight-exvat {font-size: 1.7em; color: #205d68; font-weight: bold;}
+  .highlight-inclvat {font-size: 1.2em; color: #2ec4b6;}
+  .businesscard {text-align:center; margin-top:18px;}
+  .businesscard img {max-width:120px; border-radius:8px; margin-bottom:8px;}
+  .businesscard .details {font-size:1em;}
+  #tpnConsentField {margin-top: 18px;}
+  #qrCanvas {margin: 0 auto; display: block;}
+  .attachment-reminder {margin-top:8px; padding:10px; border:1px dashed #ffb300; border-radius:8px; background:#fff8e1;}
+  .vat-row {display:flex; align-items:center; gap:8px;}
+  .vat-row input[type="number"] {flex:1;}
+  .vat-row label {margin:0;}
+  @media (max-width: 600px) {
+    .container {padding: 6px;}
+    .logo {max-width: 180px;}
+    .vat-row {flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <img src="1000026370.jpg"
+         alt="Isinkwe Energies Branding: Sifiso Brian Mbandlwa, Business Card, LPG Cylinders" class="logo" />
+    <div class="brandline" id="animatedSlogan">Safe. Reliable. Ready.</div>
+
+    <div class="form-section">
+      <label>Client Name:</label>
+      <input type="text" id="clientName" required>
+      <label>Business Name:</label>
+      <input type="text" id="businessName">
+
+      <label for="yourPrice">Your Quoted Price per kg (excl. VAT):</label>
+      <input type="number" id="yourPrice" min="0" step="0.01" value="26" />
+
+      <label for="cylinderSize">Cylinder Size (kg):</label>
+      <select id="cylinderSize" onchange="updateSupplierPerKg()">
+        <option value="9">9 kg</option>
+        <option value="14">14 kg</option>
+        <option value="19" selected>19 kg</option>
+        <option value="19-forklift">19 kg Forklift</option>
+        <option value="48-single">48 kg Single Valve</option>
+        <option value="48-double">48 kg Double Valve</option>
+      </select>
+
+      <!-- SUPPLIER PRICE: TOTAL & PER KG, VAT CHECKBOX -->
+      <label for="supplierTotalPrice">Supplier’s Total Price (for full cylinder):</label>
+      <div class="vat-row">
+        <input type="number" id="supplierTotalPrice" min="0" step="0.01" placeholder="e.g. 500" oninput="updateSupplierPerKg()" />
+        <label>
+          <input type="checkbox" id="supplierPriceInclVAT" onchange="updateSupplierPerKg()" />
+          Including VAT
+        </label>
+        <button type="button" class="btn" style="background:#ffd600;color:#205d68;padding:7px 12px;font-size:14px;" onclick="calculateSupplierPerKg()">Auto-calc per kg</button>
+      </div>
+      <label for="supplierPrice">Supplier Price per kg (excl. VAT):</label>
+      <input type="number" id="supplierPrice" min="0" step="0.01" value="28" />
+
+      <label for="qty">Cylinders per Order:</label>
+      <input type="number" id="qty" min="1" value="1" />
+
+      <label for="ordersPerMonth">Orders per Month:</label>
+      <input type="number" id="ordersPerMonth" min="1" value="1" />
+
+      <label for="deliveryFee">Delivery Fee (R):</label>
+      <input type="number" id="deliveryFee" min="0" step="0.01" value="0" />
+
+      <label for="clientCell">Client Cell Number:</label>
+      <input type="tel" id="clientCell" placeholder="+27 62 123 4567" autocomplete="tel" />
+
+      <label for="clientEmail">Client Email Address:</label>
+      <input type="email" id="clientEmail" placeholder="client@email.com" autocomplete="email" />
+
+      <label>How will the client receive their cylinder?</label>
+      <select id="cylinderOption" onchange="toggleDepositSwapFields()">
+        <option value="deposit">Pay Deposit</option>
+        <option value="exchange">Exchange</option>
+      </select>
+
+      <div id="depositFields" style="display:block;">
+        <label for="depositCylinderSize">Deposit Cylinder Size:</label>
+        <select id="depositCylinderSize" onchange="updateDepositAmount()">
+          <option value="9">9 kg</option>
+          <option value="14">14 kg</option>
+          <option value="19">19 kg</option>
+          <option value="19-forklift">19 kg Forklift</option>
+          <option value="48-single">48 kg Single Valve</option>
+          <option value="48-double">48 kg Double Valve</option>
+        </select>
+        <label>Deposit Amount: R<span id="depositAmount"></span></label>
+        <button onclick="window.open('https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/67820504/db0f6419-9907-4836-a75c-fdd7ca28a807/Cylinder-Deposits-V-2.pdf','_blank')" class="btn deposit-btn">
+          LPG Cylinder Deposits and Services Form
+        </button>
+      </div>
+
+      <div id="exchangeFields" style="display:none;">
+        <button onclick="window.open('https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/67820504/e7730de2-45e8-4fe9-a5d9-1a7957a86e90/Isinkwe-Energies-Cylinder-Exchange-Acceptance-1.pdf','_blank')" class="btn swap-btn">
+          LPG Cylinder Exchange and Deposit Policy
+        </button>
+      </div>
+
+      <button class="btn" onclick="calculateSavings()">Calculate Savings</button>
+      <button class="btn" style="background:#205d68;" onclick="window.open('https://forms.clickup.com/9015674368/f/8cp0hg0-2235/79MEBGELBCGCD1P1IH','_blank')">
+        Complete Application Form
+      </button>
+    </div>
+
+    <!-- Quote Results -->
+    <div id="quote-section" class="info-block" style="display:none;"></div>
+    <div class="links" id="afterQuoteLinks" style="display:none;">
+      <button class="pdf-btn btn" onclick="downloadPDF()">Download Quote as PDF</button>
+      <button class="btn" onclick="sendWhatsAppQuote()">Send via WhatsApp Business</button>
+      <button class="email-btn btn" onclick="sendEmailQuote()">Send via Email</button>
+      
+      <!-- Logo Download for Attachment -->
+      <div class="attachment-reminder">
+        <a href="1000026370.jpg" download>
+          <img src="1000026370.jpg" alt="Download Isinkwe Energies Logo" style="width:60px; border-radius:8px; vertical-align:middle;">
+          <span style="font-weight:bold; color:#205d68; margin-left:8px;">Download Logo to Attach</span>
+        </a>
+        <div style="color:#e65100; font-weight:bold; margin-top:8px;">
+          After clicking "Send via WhatsApp" or "Send via Email", please attach the logo image to your message.
+        </div>
+      </div>
+    </div>
+    <canvas id="qrCanvas" width="100" height="100" style="display:none;"></canvas>
+
+    <!-- TPN Consent always after quote -->
+    <div id="tpnConsentField" style="display:none;">
+      <button onclick="window.open('https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/67820504/cc9e6196-c386-41fc-b7f6-a7e1e2d1061e/Isinkwe-Energies-TPN-Consent.pdf','_blank')" class="btn">
+        Isinkwe Energies TPN Consent
+      </button>
+    </div>
+
+    <!-- Business Card Section -->
+    <div class="businesscard">
+      <img src="1000026370.jpg"
+           alt="Isinkwe Energies Branding: Sifiso Brian Mbandlwa, Business Card, LPG Cylinders" />
+      <div class="details">
+        <b>Sifiso Brian Mbandlwa</b><br>
+        LPG Specialist<br>
+        M: +27 69 946 6588<br>
+        E: sales.kzn@isinkwegroup.com<br>
+        <a href="https://isinkwegroup.com" target="_blank" style="color:#2ec4b6;">www.isinkwegroup.com</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+const depositAmounts = {
+  "9": 450,
+  "14": 550,
+  "19": 600,
+  "19-forklift": 700,
+  "48-single": 1050,
+  "48-double": 1050
+};
+
+function toggleDepositSwapFields() {
+  const option = document.getElementById('cylinderOption').value;
+  document.getElementById('depositFields').style.display = option === 'deposit' ? 'block' : 'none';
+  document.getElementById('exchangeFields').style.display = option === 'exchange' ? 'block' : 'none';
+}
+
+function updateDepositAmount() {
+  const size = document.getElementById('depositCylinderSize').value;
+  document.getElementById('depositAmount').textContent = depositAmounts[size] || 0;
+}
+updateDepositAmount();
+
+// --- Supplier Per KG Calculation ---
+function updateSupplierPerKg() {
+  // Auto-update per kg if total price and cylinder size are filled
+  const totalPrice = parseFloat(document.getElementById('supplierTotalPrice').value) || 0;
+  const cylinderSize = parseFloat(document.getElementById('cylinderSize').value) || 1;
+  const inclVAT = document.getElementById('supplierPriceInclVAT').checked;
+  const VAT = 0.15;
+  if (totalPrice > 0 && cylinderSize > 0) {
+    let exclVATPrice = totalPrice;
+    if (inclVAT) {
+      exclVATPrice = totalPrice / (1 + VAT);
+    }
+    const perKg = exclVATPrice / cylinderSize;
+    document.getElementById('supplierPrice').value = perKg.toFixed(2);
+  }
+}
+function calculateSupplierPerKg() {
+  updateSupplierPerKg();
+}
+
+function calculateSavings() {
+  const VAT = 0.15;
+  const clientName = document.getElementById("clientName").value;
+  const businessName = document.getElementById("businessName").value;
+  const yourPrice = parseFloat(document.getElementById("yourPrice").value) || 0;
+  const supplierPrice = parseFloat(document.getElementById("supplierPrice").value) || 0;
+  const cylinderSize = parseFloat(document.getElementById("cylinderSize").value) || 0;
+  const qty = parseInt(document.getElementById("qty").value) || 0;
+  const ordersPerMonth = parseInt(document.getElementById("ordersPerMonth").value) || 0;
+  const deliveryFee = parseFloat(document.getElementById("deliveryFee").value) || 0;
+  const cylinderOption = document.getElementById('cylinderOption').value;
+
+  let depositAmount = 0;
+  let depositLabel = '';
+  if (cylinderOption === 'deposit') {
+    const depositCylinderSize = document.getElementById('depositCylinderSize').value;
+    depositAmount = depositAmounts[depositCylinderSize] || 0;
+    depositLabel = `Deposit: R${depositAmount} (${document.getElementById('depositCylinderSize').options[document.getElementById('depositCylinderSize').selectedIndex].text})`;
+  } else {
+    depositLabel = `No deposit (see Exchange Policy)`;
+  }
+
+  // Per cylinder
+  const yourExcl = yourPrice * cylinderSize;
+  const yourIncl = yourExcl * (1 + VAT);
+  const supplierExcl = supplierPrice * cylinderSize;
+  const supplierIncl = supplierExcl * (1 + VAT);
+  const savingsPerCylinder = supplierIncl - yourIncl;
+
+  // Per order
+  const yourOrderExcl = yourExcl * qty;
+  const yourOrderIncl = yourIncl * qty;
+  const supplierOrderIncl = supplierIncl * qty;
+  const savingsPerOrder = supplierOrderIncl - yourOrderIncl;
+
+  // Per month, quarter, 6 months, year
+  const savingsPerMonth = savingsPerOrder * ordersPerMonth;
+  const savingsPerQuarter = savingsPerMonth * 3;
+  const savingsPer6Months = savingsPerMonth * 6;
+  const savingsPerYear = savingsPerMonth * 12;
+
+  // Totals
+  const totalExVAT = yourOrderExcl + depositAmount + deliveryFee;
+  const totalInclVAT = yourOrderIncl + depositAmount * (cylinderOption === 'deposit' ? (1 + VAT) : 0) + deliveryFee;
+
+  // QR code for your website or app
+  const qr = new QRious({
+    element: document.getElementById('qrCanvas'),
+    value: "https://isinkwegroup.com",
+    size: 100
+  });
+  document.getElementById('qrCanvas').style.display = 'block';
+
+  let result = `
+    <div><b>Business:</b> ${businessName}</div>
+    <hr>
+    <div><b>Your Quoted Price per Cylinder (Ex VAT):</b> R${yourExcl.toFixed(2)}</div>
+    <div><b>Your Quoted Price per Cylinder (Incl VAT):</b> R${yourIncl.toFixed(2)}</div>
+    <div><b>Supplier Price per Cylinder (Incl VAT):</b> R${supplierIncl.toFixed(2)}</div>
+    <div><b>Savings per Cylinder:</b> <span style="color:#2ec4b6;">R${savingsPerCylinder.toFixed(2)}</span></div>
+    <hr>
+    <div><b>Savings per Order:</b> R${savingsPerOrder.toFixed(2)}</div>
+    <div><b>Savings per Month:</b> R${savingsPerMonth.toFixed(2)}</div>
+    <div><b>Savings per Quarter:</b> R${savingsPerQuarter.toFixed(2)}</div>
+    <div><b>Savings per 6 Months:</b> R${savingsPer6Months.toFixed(2)}</div>
+    <div><b>Savings per Year:</b> R${savingsPerYear.toFixed(2)}</div>
+    <hr>
+    <div><b>Delivery Fee:</b> R${deliveryFee.toFixed(2)}</div>
+    <div class="highlight-exvat">Total Ex VAT: R${totalExVAT.toFixed(2)}</div>
+    <div class="highlight-inclvat">Total Incl VAT: R${totalInclVAT.toFixed(2)}</div>
+    <hr>
+    <div><b>${depositLabel}</b></div>
+    <div><img src="1000026370.jpg" alt="Isinkwe Energies" style="max-width:120px; margin-top:10px; border-radius:8px;"></div>
+    <div><canvas id="qrCanvas" width="100" height="100"></canvas></div>
+  `;
+
+  document.getElementById("quote-section").innerHTML = result;
+  document.getElementById("quote-section").style.display = "block";
+  document.getElementById("afterQuoteLinks").style.display = "block";
+  document.getElementById("tpnConsentField").style.display = "block";
+
+  // Save for quote
+  window.lastQuote = {
+    clientName, businessName, yourExcl, yourIncl, supplierIncl, savingsPerCylinder, qty,
+    yourOrderIncl, supplierOrderIncl, savingsPerOrder, savingsPerMonth, savingsPerQuarter,
+    savingsPer6Months, savingsPerYear, cylinderSize, ordersPerMonth, depositLabel, depositAmount,
+    totalExVAT, totalInclVAT, deliveryFee
+  };
+
+  // --- Google Sheets Integration ---
+  saveToGoogleSheets(window.lastQuote);
+}
+
+function getQuoteMessage() {
+  const q = window.lastQuote;
+  if (!q) return "";
+  return `Hello, ${q.clientName}!
+
+Thank you for considering us for your LPG needs. We're committed to offering you safe, reliable, and cost-effective energy solutions. Please find your personalised LPG savings quote below:
+
+Business: ${q.businessName}
+Cylinder Size: ${q.cylinderSize}kg
+Your Quoted Price per Cylinder (Ex VAT): R${q.yourExcl.toFixed(2)}
+Your Quoted Price per Cylinder (Incl VAT): R${q.yourIncl.toFixed(2)}
+Supplier Price per Cylinder (Incl VAT): R${q.supplierIncl.toFixed(2)}
+Savings per Cylinder: R${q.savingsPerCylinder.toFixed(2)}
+
+Cylinders per Order: ${q.qty}
+Orders per Month: ${q.ordersPerMonth}
+
+Savings per Order: R${q.savingsPerOrder.toFixed(2)}
+Savings per Month: R${q.savingsPerMonth.toFixed(2)}
+Savings per Quarter: R${q.savingsPerQuarter.toFixed(2)}
+Savings per 6 Months: R${q.savingsPer6Months.toFixed(2)}
+Savings per Year: R${q.savingsPerYear.toFixed(2)}
+
+${q.depositLabel}
+Delivery Fee: R${q.deliveryFee.toFixed(2)}
+
+Total Ex VAT: R${q.totalExVAT.toFixed(2)}
+Total Incl VAT: R${q.totalInclVAT.toFixed(2)}
+
+If you have any questions or would like to place an order, please contact me directly.
+
+Sifiso Brian Mbandlwa, LPG Specialist
+M: +27 69 946 6588
+E: sales.kzn@isinkwegroup.com
+www.isinkwegroup.com
+
+Safe. Reliable. Ready.`;
+}
+
+// WhatsApp Business send
+function sendWhatsAppQuote() {
+  const cell = document.getElementById("clientCell").value.replace(/\D/g, "");
+  const msg = encodeURIComponent(getQuoteMessage());
+  const url = cell ? `https://wa.me/${cell}?text=${msg}` : `https://wa.me/?text=${msg}`;
+  window.open(url, "_blank");
+  alert("Please attach the Isinkwe logo image to your WhatsApp message before sending!");
+}
+
+// Email send
+function sendEmailQuote() {
+  const email = document.getElementById("clientEmail").value;
+  const subject = encodeURIComponent("Your Isinkwe Energies LPG Savings Quote");
+  const body = encodeURIComponent(getQuoteMessage() + "\n\n(See attached Isinkwe logo image.)");
+  const mailto = email ? `mailto:${email}?subject=${subject}&body=${body}` : `mailto:?subject=${subject}&body=${body}`;
+  window.location.href = mailto;
+  alert("Please attach the Isinkwe logo image to your email before sending!");
+}
+
+// PDF Download
+function downloadPDF() {
+  const element = document.getElementById("quote-section");
+  html2canvas(element).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new window.jspdf.jsPDF();
+    pdf.addImage(imgData, 'PNG', 10, 10, 180, 0);
+    // Add QR code
+    const qrCanvas = document.getElementById('qrCanvas');
+    if (qrCanvas) {
+      const qrImg = qrCanvas.toDataURL('image/png');
+      pdf.addImage(qrImg, 'PNG', 150, 250, 40, 40);
+    }
+    pdf.save("isinkwe-quote.pdf");
+  });
+}
+
+// --- Google Sheets Integration ---
+function saveToGoogleSheets(quote) {
+  // Your Google Apps Script Web App URL
+  const scriptURL = 'https://script.google.com/macros/s/AKfycby98LsiSz0Mya79CVjxIUQw0VZuspGLG5BsJJVTSR8Hr11j3unsr5mFA5Fs3ZF-S91P/exec';
+  fetch(scriptURL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(quote)
+  });
+}
+</script>
+</body>
+</html>
