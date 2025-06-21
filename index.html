@@ -7,229 +7,9 @@
   <meta name="theme-color" content="#205d68" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="https://pplx-res.cloudinary.com/image/upload/v1750449704/user_uploads/67820504/80304051-2d83-4eaa-bf47-a9f238882bd2/1000027090.jpg" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      margin: 0;
-      background: #fafcff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      color: #205d68;
-    }
-    .logo-banner {
-      width: 100%;
-      background: linear-gradient(90deg, #e0f7fa 0%, #b2ebf2 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 0 24px 0;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-    }
-    .logo-banner a {
-      display: block;
-      text-decoration: none;
-    }
-    .logo-banner img {
-      width: 220px;
-      max-width: 90vw;
-      height: auto;
-      border-radius: 18px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-      background: #fff;
-      margin-bottom: 16px;
-      transition: transform 0.2s;
-      display: block;
-      animation: logoBounce 1s cubic-bezier(.68,-0.55,.27,1.55);
-    }
-    @keyframes logoBounce {
-      0% { transform: scale(0.9); opacity: 0; }
-      60% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-    .brand-title {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #00796b;
-      margin-bottom: 4px;
-      letter-spacing: 1px;
-      text-align: center;
-    }
-    .brand-subtitle {
-      font-size: 1.1rem;
-      color: #00695c;
-      letter-spacing: 2px;
-      text-align: center;
-      font-weight: 500;
-      margin-bottom: 10px;
-    }
-    .trend-chart-container {
-      max-width: 420px;
-      margin: 0 auto 16px auto;
-      background: #f5fafd;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(32,93,104,0.07);
-      padding: 12px 8px 2px 8px;
-    }
-    .trend-banner {
-      text-align:center;
-      font-weight:600;
-      color:#00796b;
-      margin-top:4px;
-      font-size:1em;
-    }
-    .container { max-width: 700px; margin: 20px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(32,93,104,0.10); padding: 24px 16px;}
-    .brandline {font-size: 1.6em; font-weight: bold; text-align: center; color: #205d68; margin-bottom: 18px;}
-    .doc-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-    .doc-btn { font-size: 1em; font-weight: bold; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; }
-    .tpn-btn { background: #205d68; color: #fff; }
-    .deposit-btn { background: #ff9800; color: #205d68; }
-    .exchange-btn { background: #4caf50; color: #fff; }
-    .logo-btn { background: #eee; color: #205d68; }
-    .info-block { background: #e0f7fa; border-radius: 8px; padding: 12px 18px; color: #205d68; margin: 18px 0; line-height: 1.5; white-space: pre-line;}
-    fieldset { margin: 20px 0; padding: 20px; border-radius: 12px; border-left: 5px solid; }
-    legend { font-size: 1.3em; font-weight: bold; color: #205d68; padding: 0 10px; }
-    fieldset.client-info { background: #fce4ec; border-left-color: #e91e63; }
-    fieldset.client-info legend { color: #e91e63; }
-    fieldset.pricing-info { background: #e8f5e8; border-left-color: #4caf50; }
-    fieldset.pricing-info legend { color: #4caf50; }
-    fieldset.additional-costs { background: #fff3e0; border-left-color: #ff9800; }
-    fieldset.additional-costs legend { color: #ff9800; }
-    fieldset.finalization { background: #f3e5f5; border-left-color: #9c27b0; }
-    fieldset.finalization legend { color: #9c27b0; }
-    label { font-weight: 600; margin-top: 10px; display: block; }
-    input, select { margin-bottom: 15px; padding: 8px; border-radius: 6px; border: 1px solid #b2dfdb; width: 100%; box-sizing: border-box; }
-    .btn { background: #25D366; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 10px 8px 0 0; }
-    .email-btn { background: #205d68; }
-    .pdf-btn { background: #2ec4b6; }
-    .swap-btn { background: #ffd600; color: #205d68; }
-    .add-cylinder-btn { background: #4caf50; padding: 8px 12px; font-size: 14px; }
-    .remove-cylinder-btn { background: #f44336; padding: 4px 8px; font-size: 12px; }
-    .cylinder-row {
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 10px 0;
-      position: relative;
-    }
-    .cylinder-row-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .cylinder-row-title {
-      font-weight: bold;
-      color: #4caf50;
-    }
-    .cylinder-fields {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .total-block {
-      background:#e8f5e8;
-      border-radius:12px;
-      padding:16px;
-      box-shadow:0 2px 8px rgba(46,196,182,0.3);
-      margin-bottom: 30px;
-      text-align:center;
-    }
-    .total-price {
-      color:#2ec4b6;
-      font-weight:900;
-      font-size:1.6em;
-      cursor:pointer;
-      user-select:none;
-    }
-    .grid-container {
-      display:grid;
-      grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
-      gap:12px;
-      font-weight:700;
-      color:#205d68;
-      font-size:1em;
-      text-align:center;
-      margin-top: 12px;
-    }
-    .grid-item-label {
-      font-size: 1.1em;
-      margin-bottom: 6px;
-    }
-    .highlight-savings {
-      color:#2ec4b6;
-      font-size:1.2em;
-    }
-    .cylinder-card {
-      background: #f9f9f9;
-      border-radius: 10px;
-      padding: 12px 18px;
-      box-shadow: 0 2px 6px rgba(32,93,104,0.1);
-      color: #205d68;
-      margin-bottom: 12px;
-    }
-    .cylinder-grid {
-      display:grid;
-      grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
-      gap:12px;
-      font-weight:600;
-    }
-    .cylinder-grid div {
-      text-align: center;
-    }
-    .cylinder-price {
-      font-weight:900;
-      font-size:1.3em;
-      color:#2ec4b6;
-    }
-    table.savings-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-    }
-    table.savings-table th, table.savings-table td {
-      border: 1px solid #ccc;
-      padding: 6px 10px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 0.9em;
-    }
-    table.savings-table th {
-      background-color: #e8f5e8;
-      color: #4caf50;
-    }
-    .footer {
-      font-size:0.95em;
-      color:#888;
-      margin-top:18px;
-      text-align:center;
-    }
-    @media (max-width: 600px) {
-      .container { padding: 6px; }
-      .logo-banner img { max-width: 98vw; border-radius: 12px; }
-      .brand-title { font-size: 1.3rem; }
-      .brand-subtitle { font-size: 0.95rem; }
-      .brandline { font-size: 1.1em; }
-      .cylinder-fields { grid-template-columns: 1fr; }
-      .cylinder-grid { grid-template-columns: 1fr; }
-      table.savings-table th, table.savings-table td {
-        font-size: 0.8em;
-        padding: 4px 6px;
-      }
-    }
-    .live-link {
-      font-size: 0.98em;
-      margin-left: 12px;
-      color: #00796b;
-      text-decoration: underline;
-      font-weight: 500;
-    }
-    .live-link:hover { color: #ff9800; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Logo Banner with Brand Text -->
   <div class="logo-banner">
     <a href="https://isinkwegroup.com" target="_blank" rel="noopener">
       <img 
@@ -240,23 +20,6 @@
     <div class="brand-title">ISINKWE ENERGIES</div>
     <div class="brand-subtitle">LPG CYLINDERS KZN</div>
   </div>
-
-  <!-- Historical LPG Price Trend Chart -->
-  <div class="trend-chart-container">
-    <canvas id="priceTrendChart" height="110"></canvas>
-    <div id="priceTrendBanner" class="trend-banner"></div>
-  </div>
-
-  <!-- Live Market Price Field with Official Link -->
-  <div class="info-block" style="margin-bottom:16px;">
-    <strong>Current Official LPG Price (per kg, incl. VAT):</strong>
-    <input type="number" id="adminLPGPrice" step="0.01" style="width:100px;" onchange="updateLiveLPGPrice()" />
-    <span id="liveLPGPrice" style="margin-left:10px; font-weight:bold;"></span>
-    <a class="live-link" href="https://www.energy.gov.za/files/esources/petroleum/petroleum_lpg.html" target="_blank" rel="noopener">
-      View Official DMRE LPG Prices
-    </a>
-  </div>
-  <!-- Calculator App Content -->
   <div class="container">
     <div class="brandline">Isinkwe Energies LPG Savings Calculator</div>
     <div class="doc-buttons">
@@ -273,95 +36,98 @@
         <button class="doc-btn logo-btn">🖼️ Company Logo</button>
       </a>
     </div>
-    <fieldset class="client-info">
-      <legend>📋 Client Information</legend>
-      <label for="clientName">Client Name:</label>
-      <input type="text" id="clientName" autocomplete="name" />
-      <label for="businessName">Business Name:</label>
-      <input type="text" id="businessName" autocomplete="organization" />
-      <label for="clientCell">Client Cell Number:</label>
-      <input type="tel" id="clientCell" placeholder="+27 62 123 4567" autocomplete="tel" />
-      <label for="clientEmail">Client Email Address:</label>
-      <input type="email" id="clientEmail" placeholder="client@email.com" autocomplete="email" />
-      <label for="clientAddress">Client Address:</label>
-      <input type="text" id="clientAddress" placeholder="Your address will appear here" />
-      <button type="button" class="btn swap-btn" onclick="getAddressFromGPS()">📍 Use Current Location</button>
-    </fieldset>
-    <fieldset class="additional-costs">
-      <legend>📦 LPG Supply Information</legend>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <h3 style="margin:0;color:#4caf50;">🛢️ Cylinders</h3>
-        <button type="button" class="btn add-cylinder-btn" onclick="addCylinderRow()">+ Add Cylinder</button>
-      </div>
-      <div id="cylindersContainer"></div>
-      <label for="cylinderOption">How will the client receive their cylinder?</label>
-      <select id="cylinderOption" onchange="updateExchangeFields()">
-        <option value="deposit">Pay Deposit</option>
-        <option value="exchange">Exchange</option>
-      </select>
-      <div id="exchangeFields" style="display:none;margin-top:10px;">
-        <button onclick="window.open('https://drive.google.com/file/d/1p4iRkbrx35MwC9OJa15zn5o8sj_RDB-D/view?usp=drivesdk','_blank')" class="btn exchange-btn">
-          📄 LPG Cylinder Exchange Policy
-        </button>
-      </div>
-    </fieldset>
-    <fieldset class="pricing-info">
-      <legend>💰 Pricing Information</legend>
-      <label for="yourPrice">Isinkwe Price per kg (excl. VAT):</label>
-      <input type="number" id="yourPrice" min="0" step="0.01" />
-      <div style="margin:10px 0;">
-        <label style="font-weight:600;">Known supplier price?</label>
-        <label><input type="radio" name="knowPrice" value="yes" checked onchange="toggleMarketPriceInputs()" /> Yes</label>
-        <label><input type="radio" name="knowPrice" value="no" onchange="toggleMarketPriceInputs()" /> No</label>
-      </div>
-      <div id="marketPricePerKgDiv">
-        <label for="marketPrice">Market Price per kg (excl. VAT):</label>
-        <input type="number" id="marketPrice" min="0" step="0.01" />
-      </div>
-      <div id="marketTotalPriceDiv" style="display:none; background:#fff8e1; border:1px dashed #ffb300; border-radius:6px; padding:10px;">
-        <label for="marketTotalPrice">Supplier's Total Price:</label>
-        <div style="display:flex;gap:10px;margin-top:6px;">
-          <input type="number" id="marketTotalPrice" min="0" step="0.01" placeholder="e.g. 500" style="flex:1;" />
-          <label><input type="checkbox" id="marketPriceInclVAT" onchange="calculateMarketPerKg()" /> Including VAT</label>
-          <button type="button" class="btn deposit-btn" onclick="calculateMarketPerKg()">Auto-calc per kg</button>
+    <div class="accordion">
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="true" aria-controls="client-info" id="client-info-header">📋 Client Information</button>
+        <div id="client-info" class="accordion-content">
+          <fieldset class="client-info">
+            <label for="clientName">Client Name:</label>
+            <input type="text" id="clientName" autocomplete="name" aria-label="Client Name" />
+            <label for="businessName">Business Name:</label>
+            <input type="text" id="businessName" autocomplete="organization" aria-label="Business Name" />
+            <label for="clientCell">Client Cell Number:</label>
+            <input type="tel" id="clientCell" placeholder="+27 62 123 4567" autocomplete="tel" aria-label="Client Cell Number" />
+            <label for="clientEmail">Client Email Address:</label>
+            <input type="email" id="clientEmail" placeholder="client@email.com" autocomplete="email" aria-label="Client Email Address" />
+            <label for="clientAddress">Client Address:</label>
+            <input type="text" id="clientAddress" placeholder="Your address will appear here" aria-label="Client Address" />
+            <button type="button" class="btn swap-btn" onclick="Calculator.getAddressFromGPS()">📍 Use Current Location</button>
+          </fieldset>
         </div>
       </div>
-      <label for="deliveryFee">Delivery Fee (R):</label>
-      <input type="number" id="deliveryFee" min="0" step="0.01" />
-    </fieldset>
-    <fieldset class="finalization">
-      <legend>✅ Complete Quotation</legend>
-      <button class="btn deposit-btn" onclick="calculateSavings()">Calculate Savings</button>
-      <button class="btn email-btn" onclick="window.open('https://forms.clickup.com/9015674368/f/8cp0hg0-2235/79MEBGELBCGCD1P1IH','_blank')">
-        Complete Application Form
-      </button>
-    </fieldset>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" aria-controls="lpg-supply" id="lpg-supply-header">📦 LPG Supply Information</button>
+        <div id="lpg-supply" class="accordion-content" style="display: none;">
+          <fieldset class="additional-costs">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <h3 style="margin:0;color:#4caf50;">🛢️ Cylinders</h3>
+              <button type="button" class="btn add-cylinder-btn" onclick="Calculator.addCylinderRow()">+ Add Cylinder</button>
+            </div>
+            <div id="cylindersContainer"></div>
+            <label for="cylinderOption">How will the client receive their cylinder?</label>
+            <select id="cylinderOption" onchange="Calculator.updateExchangeFields()" aria-label="Cylinder Delivery Option">
+              <option value="deposit">Pay Deposit</option>
+              <option value="exchange">Exchange</option>
+            </select>
+            <div id="exchangeFields" style="display:none;margin-top:10px;">
+              <button onclick="window.open('https://drive.google.com/file/d/1p4iRkbrx35MwC9OJa15zn5o8sj_RDB-D/view?usp=drivesdk','_blank')" class="btn exchange-btn">
+                📄 LPG Cylinder Exchange Policy
+              </button>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" aria-controls="pricing-info" id="pricing-info-header">💰 Pricing Information</button>
+        <div id="pricing-info" class="accordion-content" style="display: none;">
+          <fieldset class="pricing-info">
+            <label for="yourPrice">Isinkwe Price per kg (excl. VAT):</label>
+            <input type="number" id="yourPrice" min="0" step="0.01" aria-label="Isinkwe Price per kg (excluding VAT)" />
+            <div style="margin:10px 0;">
+              <label style="font-weight:600;">Known supplier price?</label>
+              <label><input type="radio" name="knowPrice" value="yes" checked onchange="Calculator.toggleMarketPriceInputs()" aria-label="Know Supplier Price: Yes" /> Yes</label>
+              <label><input type="radio" name="knowPrice" value="no" onchange="Calculator.toggleMarketPriceInputs()" aria-label="Know Supplier Price: No" /> No</label>
+            </div>
+            <div id="marketPricePerKgDiv">
+              <label for="marketPrice">Market Price per kg (excl. VAT):</label>
+              <input type="number" id="marketPrice" min="0" step="0.01" aria-label="Market Price per kg (excluding VAT)" />
+            </div>
+            <div id="marketTotalPriceDiv" style="display:none; background:#fff8e1; border:1px dashed #ffb300; border-radius:6px; padding:10px;">
+              <label for="marketTotalPrice">Supplier's Total Price:</label>
+              <div style="display:flex;gap:10px;margin-top:6px;">
+                <input type="number" id="marketTotalPrice" min="0" step="0.01" placeholder="e.g. 500" style="flex:1;" aria-label="Supplier's Total Price" />
+                <label><input type="checkbox" id="marketPriceInclVAT" onchange="Calculator.calculateMarketPerKg()" aria-label="Supplier Price Includes VAT" /> Including VAT</label>
+                <button type="button" class="btn deposit-btn" onclick="Calculator.calculateMarketPerKg()">Auto-calc per kg</button>
+              </div>
+            </div>
+            <label for="deliveryFee">Delivery Fee (R):</label>
+            <input type="number" id="deliveryFee" min="0" step="0.01" aria-label="Delivery Fee" />
+          </fieldset>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" aria-controls="finalization" id="finalization-header">✅ Complete Quotation</button>
+        <div id="finalization" class="accordion-content" style="display: none;">
+          <fieldset class="finalization">
+            <button class="btn deposit-btn" onclick="Calculator.calculateSavings()">Calculate Savings</button>
+            <button class="btn email-btn" onclick="window.open('https://forms.clickup.com/9015674368/f/8cp0hg0-2235/79MEBGELBCGCD1P1IH','_blank')">
+              Complete Application Form
+            </button>
+          </fieldset>
+        </div>
+      </div>
+    </div>
     <div id="quote-section" class="info-block" style="display:none;">
       <h2>📊 Quote Summary</h2>
       <div class="total-block">
         <h3 id="totalPriceLabel">Total Isinkwe Price (Excl. VAT):</h3>
         <div id="totalYourPrice" class="total-price" title="Click to toggle VAT"></div>
         <div class="grid-container">
-          <div>
-            <div class="grid-item-label">Total Quantity (kg)</div>
-            <div id="totalQuantity"></div>
-          </div>
-          <div>
-            <div class="grid-item-label">Total Supplier Price (<span id="marketPriceLabel">Excl. VAT</span>)</div>
-            <div id="totalMarketPrice" class="total-price" title="Click to toggle VAT"></div>
-          </div>
-          <div>
-            <div class="grid-item-label">Total Savings (<span id="savingsLabel">Excl. VAT</span>)</div>
-            <div id="totalSavings" class="highlight-savings total-price" title="Click to toggle VAT"></div>
-          </div>
-          <div>
-            <div class="grid-item-label">Delivery Fee (Incl. VAT)</div>
-            <div id="deliveryFeeDisplay"></div>
-          </div>
-          <div>
-            <div class="grid-item-label">Deposit Fee</div>
-            <div id="depositFeeDisplay"></div>
-          </div>
+          <div><div class="grid-item-label">Total Quantity (kg)</div><div id="totalQuantity"></div></div>
+          <div><div class="grid-item-label">Total Supplier Price (<span id="marketPriceLabel">Excl. VAT</span>)</div><div id="totalMarketPrice" class="total-price" title="Click to toggle VAT"></div></div>
+          <div><div class="grid-item-label">Total Savings (<span id="savingsLabel">Excl. VAT</span>)</div><div id="totalSavings" class="highlight-savings total-price" title="Click to toggle VAT"></div></div>
+          <div><div class="grid-item-label">Delivery Fee (Incl. VAT)</div><div id="deliveryFeeDisplay"></div></div>
+          <div><div class="grid-item-label">Deposit Fee</div><div id="depositFeeDisplay"></div></div>
         </div>
       </div>
       <h3>🛢️ Cylinder Details</h3>
@@ -378,9 +144,9 @@
       </table>
     </div>
     <div id="afterQuoteLinks" style="display:none;">
-      <button class="btn pdf-btn" onclick="downloadPDF()">Download PDF</button>
-      <button class="btn swap-btn" onclick="sendWhatsAppBusinessQuote()">Send via WhatsApp Business</button>
-      <button class="btn email-btn" onclick="sendEmailQuote()">Send via Email</button>
+      <button class="btn pdf-btn" onclick="Calculator.downloadPDF()">Download PDF</button>
+      <button class="btn swap-btn" onclick="Calculator.sendWhatsAppBusinessQuote()">Send via WhatsApp Business</button>
+      <button class="btn email-btn" onclick="Calculator.sendEmailQuote()">Send via Email</button>
     </div>
     <div id="tpnConsentField" style="display:none;">
       <button onclick="window.open('https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/67820504/a626ff0e-a951-424e-bae5-70ee5d6d9ca1/Isinkwe-Energies-TPN-Consent.pdf','_blank')" class="btn tpn-btn">
@@ -393,101 +159,6 @@
       Tel: +27 87 350 1209 | Email: info@isinkwegroup.com
     </div>
   </div>
-  <script>
-    // Historical LPG price data for the year (update monthly as needed)
-    const lpgPriceHistory = [
-      { month: "Jan", price: 38.50 },
-      { month: "Feb", price: 39.10 },
-      { month: "Mar", price: 39.60 },
-      { month: "Apr", price: 40.00 },
-      { month: "May", price: 39.80 },
-      { month: "Jun", price: 40.20 }
-      // Add more months as needed
-    ];
-    window.addEventListener('DOMContentLoaded', function() {
-      // Draw price trend chart
-      const ctx = document.getElementById('priceTrendChart').getContext('2d');
-      const months = lpgPriceHistory.map(p => p.month);
-      const prices = lpgPriceHistory.map(p => p.price);
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: months,
-          datasets: [{
-            label: 'LPG Price (R/kg)',
-            data: prices,
-            fill: false,
-            borderColor: '#00796b',
-            backgroundColor: '#25D366',
-            tension: 0.2,
-            pointRadius: 4,
-            pointBackgroundColor: '#ff9800'
-          }]
-        },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: false, title: { display: true, text: 'R/kg' }},
-            x: { title: { display: true, text: 'Month' }}
-          }
-        }
-      });
-      // Show a banner with the change since January
-      const start = lpgPriceHistory[0].price;
-      const end = lpgPriceHistory[lpgPriceHistory.length-1].price;
-      const diff = end - start;
-      const pct = ((diff/start)*100).toFixed(1);
-      let msg = "";
-      if (diff > 0) {
-        msg = `LPG price increased by R${diff.toFixed(2)} (${pct}%) since January.`;
-      } else if (diff < 0) {
-        msg = `LPG price dropped by R${Math.abs(diff).toFixed(2)} (${Math.abs(pct)}%) since January.`;
-      } else {
-        msg = "LPG price is unchanged since January.";
-      }
-      document.getElementById('priceTrendBanner').textContent = msg;
-    });
-
-    // Live LPG Market Price (manual admin update, persistent)
-    function updateLiveLPGPrice() {
-      const price = parseFloat(document.getElementById('adminLPGPrice').value) || 0;
-      document.getElementById('liveLPGPrice').textContent = price > 0 ? 'R' + price.toFixed(2) : '';
-      localStorage.setItem('liveLPGPrice', price);
-    }
-    window.addEventListener('DOMContentLoaded', function() {
-      const saved = localStorage.getItem('liveLPGPrice');
-      if (saved) {
-        document.getElementById('liveLPGPrice').textContent = 'R' + parseFloat(saved).toFixed(2);
-        document.getElementById('adminLPGPrice').value = parseFloat(saved);
-      }
-    });
-
-    // Calculator logic
-    const VAT_RATE = 0.15;
-    const depositAmounts = {
-      "9": 450,
-      "14": 550,
-      "19": 600,
-      "19-forklift": 700,
-      "48-single": 1050,
-      "48-double": 1050
-    };
-    let cylinderCounter = 0;
-    let showIncludingVAT = false;
-
-    document.addEventListener('DOMContentLoaded', () => {
-      addCylinderRow();
-      toggleMarketPriceInputs();
-      updateExchangeFields();
-      attachToggleListeners();
-      document.getElementById('marketTotalPrice').addEventListener('input', calculateMarketPerKg);
-      document.getElementById('marketPriceInclVAT').addEventListener('change', calculateMarketPerKg);
-      document.getElementById('cylinderOption').addEventListener('change', updateExchangeFields);
-    });
-
-    async function getAddressFromGPS() {
-      if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
-        return;
-      }
-      
+  <script src="calculator.js"></script>
+</body>
+</html>
