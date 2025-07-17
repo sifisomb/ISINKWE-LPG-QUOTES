@@ -1,669 +1,581 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S24 Tablet Remote Control</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* [ ... keep all your CSS as it was ... ] */
-        /* — omitted for brevity; no CSS changes needed — */
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#205d68" />
+  <title>Isinkwe Energies LPG Savings Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF and html2canvas for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Leaflet for map -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xwE/BU6CkMp9fyq8Rf+qchpJXUD0PIGa3xQGKXSe3TJRj3rNAG2opB5r3zZZ9R9M+qKMDzv+w6f8Gc3xRkCJ6w==" 
+    crossorigin=""
+  />
+  <script 
+    src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+    integrity="sha512-gZwIG9x3wUXgL1cf5gB6ziuMJyL8aI1V6eAn6A1O9zR9szCcY6NUq8PzZ+6spGy/v3F1a/NfydspNefx5bWv3g=="
+    crossorigin=""
+  ></script>
+  <style>
+    body { font-family: 'Inter', Arial, sans-serif; }
+    .glass-card { 
+      backdrop-filter: blur(10px); 
+      background: rgba(255,255,255,0.96); 
+      border: 1px solid #e0f7fa; 
+      box-shadow: 0 8px 24px rgb(46 196 182 / 0.2);
+    }
+    .step-indicator { 
+      width: 32px; height: 32px; border-radius: 50%; 
+      display: flex; align-items: center; justify-content: center; 
+      font-weight: 700; font-size:1.1rem; 
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .step-indicator.active { 
+      background:#2ec4b6; color:#fff; 
+      box-shadow:0 0 0 2px #fff, 0 2px 8px #2ec4b655;
+    }
+    .step-indicator.completed { background:#4caf50; color:#fff; }
+    .step-indicator.inactive { background:#e0e0e0; color:#999; }
+    .step-indicator:hover { filter: brightness(1.15); cursor: pointer; }
+    input[readonly] { background:#e7f6f7 !important; }
+    .map-container {
+      width: 100%;
+      height: 210px;
+      border-radius: 11px;
+      overflow: hidden;
+      box-shadow: 0 1px 8px #2ec4b655;
+      margin-top: 10px;
+    }
+    .highlight-savings {
+      background: linear-gradient(45deg, #4caf50, #2ec4b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+    table.cylinder-table {
+      width: 100%;
+      margin: 0.4rem 0;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    table.cylinder-table th,
+    table.cylinder-table td {
+      border: 1px solid #ddd;
+      padding: 7px;
+      text-align: center;
+    }
+    table.cylinder-table th {
+      background-color: #e0f7fa;
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.7s cubic-bezier(.24,1.63,.56,1);
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(24px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
-<body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">
-                <i class="fas fa-tablet-alt"></i>
-                S24 Tablet Remote
-            </div>
-            <div class="connection-status">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Disconnected</span>
-            </div>
-        </header>
+<body class="bg-gradient-to-br from-[#e0f7fa] to-[#f5f5f5] min-h-screen">
+<div class="container mx-auto px-4 py-8 pt-12 max-w-3xl">
 
-        <div class="mode-selector">
-            <button class="mode-btn active" id="controllerBtn">
-                <i class="fas fa-mobile-alt"></i>
-                <span>Controller Mode</span>
-                <small>Use S24 as touchpad</small>
-            </button>
-            <button class="mode-btn" id="receiverBtn">
-                <i class="fas fa-tablet-alt"></i>
-                <span>Receiver Mode</span>
-                <small>Use tablet as display</small>
-            </button>
+  <!-- Header/Card and Stepper -->
+  <div class="glass-card rounded-2xl p-8 mb-8 text-center animate-fade-in">
+    <img 
+      src="https://pplx-res.cloudinary.com/image/upload/v1750449704/user_uploads/67820504/80304051-2d83-4eaa-bf47-a9f238882bd2/1000027090.jpg" 
+      class="mx-auto mb-3 rounded-2xl w-32 h-32 object-cover shadow-xl" 
+      alt="Isinkwe Energies Logo" />
+    <h1 class="text-3xl font-bold text-[#205d68] mb-2">Isinkwe Energies</h1>
+    <p class="font-semibold text-lg text-[#2ec4b6]">Safe. Reliable. Ready.</p>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="glass-card rounded-2xl p-6 mb-8 flex justify-between items-center">
+    <div class="flex items-center space-x-4" id="stepper">
+      <button type="button" class="step-indicator active" id="step1" onclick="showStep(1)">1</button>
+      <div class="w-12 h-1 bg-gray-200"></div>
+      <button type="button" class="step-indicator inactive" id="step2" onclick="showStep(2)">2</button>
+      <div class="w-12 h-1 bg-gray-200"></div>
+      <button type="button" class="step-indicator inactive" id="step3" onclick="showStep(3)">3</button>
+      <div class="w-12 h-1 bg-gray-200"></div>
+      <button type="button" class="step-indicator inactive" id="step4" onclick="showStep(4)">4</button>
+    </div>
+    <div class="text-sm text-gray-600 font-medium" id="stepText">Client Information</div>
+  </div>
+
+  <!-- FORM -->
+  <form id="mainForm" autocomplete="off" onsubmit="return false;">
+    <!-- Step 1: Client Information -->
+    <div class="form-step animate-fade-in" id="stepContent1">
+      <div class="glass-card rounded-2xl p-8">
+        <h2 class="text-2xl font-bold mb-5 flex items-center"><span class="text-2xl mr-2">👤</span> Client Information</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block font-semibold mb-1" for="clientName">Client Name</label>
+            <input type="text" id="clientName" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. John Smith" autocomplete="name" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1" for="businessName">Business Name</label>
+            <input type="text" id="businessName" class="w-full px-3 py-2 border rounded-lg" autocomplete="organization" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1" for="clientCell">Cell Number</label>
+            <input type="tel" id="clientCell" class="w-full px-3 py-2 border rounded-lg" placeholder="+27 62 123 4567" autocomplete="tel" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1" for="clientEmail">Email Address</label>
+            <input type="email" id="clientEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="client@email.com" autocomplete="email" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block font-semibold mb-1" for="clientAddress">Address</label>
+            <div class="flex space-x-2 items-stretch">
+              <input type="text" id="clientAddress" class="flex-1 px-3 py-2 border rounded-lg" placeholder="123 Main Street, Durban" />
+              <button type="button" id="gpsBtn" onclick="getAddressFromGPS()" class="px-4 bg-[#ffb300] text-gray-900 rounded-lg font-semibold hover:bg-[#fca503] transition">📍 GPS</button>
+            </div>
+            <div id="mapDiv"></div>
+          </div>
         </div>
-
-        <!-- Controller Interface (S24) -->
-        <div class="main-interface active" id="controllerInterface">
-            <div class="connection-panel">
-                <h3>Connection Room ID</h3>
-                <div class="room-id" id="roomId">Generating...</div>
-                <p style="color: var(--text-gray); font-size: 0.9rem;">
-                    Share this ID with your tablet to connect
-                </p>
-            </div>
-
-            <div class="touchpad-area" id="touchpadArea">
-                <div class="touchpad-surface">
-                    <div class="virtual-cursor" id="virtualCursor"></div>
-                    <div class="touch-indicator" id="touchIndicator1"></div>
-                    <div class="touch-indicator" id="touchIndicator2"></div>
-                </div>
-            </div>
-
-            <div class="controls-panel">
-                <button class="control-btn" id="leftClickBtn">
-                    <i class="fas fa-mouse-pointer"></i>
-                    Left Click
-                </button>
-                <button class="control-btn" id="rightClickBtn">
-                    <i class="fas fa-hand-pointer"></i>
-                    Right Click
-                </button>
-                <button class="control-btn" id="doubleClickBtn">
-                    <i class="fas fa-mouse"></i>
-                    Double Click
-                </button>
-                <button class="control-btn" id="scrollUpBtn">
-                    <i class="fas fa-arrow-up"></i>
-                    Scroll Up
-                </button>
-                <button class="control-btn" id="scrollDownBtn">
-                    <i class="fas fa-arrow-down"></i>
-                    Scroll Down
-                </button>
-                <button class="control-btn" id="backBtn">
-                    <i class="fas fa-arrow-left"></i>
-                    Back
-                </button>
-            </div>
-
-            <div class="message-log" id="controllerLog"></div>
+        <div class="flex justify-end mt-8">
+          <button type="button" onclick="showStep(2)" class="bg-[#205d68] hover:bg-[#144d54] px-8 py-2 rounded-lg text-white font-semibold transition">Next</button>
         </div>
-
-        <!-- Receiver Interface (Tablet) -->
-        <div class="main-interface" id="receiverInterface">
-            <div class="connection-panel">
-                <h3>Connect to Controller</h3>
-                <div class="input-group">
-                    <label for="roomIdInput">Enter Room ID from your S24:</label>
-                    <input type="text" id="roomIdInput" placeholder="Enter room ID..." maxlength="6">
-                </div>
-                <button class="connect-btn" id="connectBtn">Connect to S24</button>
-            </div>
-
-            <div class="receiver-display" id="receiverDisplay">
-                <div class="display-cursor" id="displayCursor"></div>
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-gray);">
-                    <i class="fas fa-mouse-pointer" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <p>Waiting for controller connection...</p>
-                </div>
-            </div>
-
-            <div class="message-log" id="receiverLog"></div>
-        </div>
+      </div>
     </div>
 
-    <script>
-        class TouchpadRemote {
-            constructor() {
-                this.isController = true;
-                this.isConnected = false;
-                this.roomId = null;
-                this.peerId = null;
-                this.remotePeerId = null;
-                this.dataChannel = null;
-                this.peerConnection = null;
-                this.cursor = { x: 0, y: 0 };
-                this.touchStartTime = 0;
-                this.lastTouchTime = 0;
-                this.touchCount = 0;
-
-                this.initializeApp();
-                this.setupEventListeners();
-                this.generateRoomId();
-            }
-
-            initializeApp() {
-                this.elements = {
-                    controllerBtn: document.getElementById('controllerBtn'),
-                    receiverBtn: document.getElementById('receiverBtn'),
-                    controllerInterface: document.getElementById('controllerInterface'),
-                    receiverInterface: document.getElementById('receiverInterface'),
-                    statusDot: document.getElementById('statusDot'),
-                    statusText: document.getElementById('statusText'),
-                    roomId: document.getElementById('roomId'),
-                    roomIdInput: document.getElementById('roomIdInput'),
-                    connectBtn: document.getElementById('connectBtn'),
-                    touchpadArea: document.getElementById('touchpadArea'),
-                    virtualCursor: document.getElementById('virtualCursor'),
-                    displayCursor: document.getElementById('displayCursor'),
-                    receiverDisplay: document.getElementById('receiverDisplay'),
-                    controllerLog: document.getElementById('controllerLog'),
-                    receiverLog: document.getElementById('receiverLog'),
-                    touchIndicator1: document.getElementById('touchIndicator1'),
-                    touchIndicator2: document.getElementById('touchIndicator2')
-                };
-            }
-
-            setupEventListeners() {
-                // Mode switching
-                this.elements.controllerBtn.addEventListener('click', () => this.switchMode(true));
-                this.elements.receiverBtn.addEventListener('click', () => this.switchMode(false));
-
-                // Connection
-                this.elements.connectBtn.addEventListener('click', () => this.connectToRoom());
-
-                // Controller events
-                this.setupTouchpadEvents();
-                this.setupControlButtons();
-
-                // Receiver events
-                this.setupReceiverEvents();
-            }
-
-            switchMode(isController) {
-                this.isController = isController;
-
-                // Update UI
-                this.elements.controllerBtn.classList.toggle('active', isController);
-                this.elements.receiverBtn.classList.toggle('active', !isController);
-                this.elements.controllerInterface.classList.toggle('active', isController);
-                this.elements.receiverInterface.classList.toggle('active', !isController);
-
-                if (isController) {
-                    this.generateRoomId();
-                    this.log('Switched to Controller Mode', 'info', 'controller');
-                } else {
-                    this.log('Switched to Receiver Mode', 'info', 'receiver');
-                }
-            }
-
-            generateRoomId() {
-                this.roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
-                this.elements.roomId.textContent = this.roomId;
-                this.peerId = `controller_${this.roomId}`;
-                this.log(`Room ID generated: ${this.roomId}`, 'success', 'controller');
-                this.initializeSignaling();
-            }
-
-            async connectToRoom() {
-                const roomId = this.elements.roomIdInput.value.trim().toUpperCase();
-                if (!roomId || roomId.length !== 6) {
-                    this.log('Please enter a valid 6-character room ID', 'error', 'receiver');
-                    return;
-                }
-
-                this.roomId = roomId;
-                this.remotePeerId = `controller_${roomId}`;
-                this.peerId = `receiver_${roomId}`;
-                this.log(`Connecting to room: ${roomId}`, 'info', 'receiver');
-                this.initializeSignaling();
-            }
-
-            async initializeSignaling() {
-                try {
-                    // Create RTCPeerConnection
-                    this.peerConnection = new RTCPeerConnection({
-                        iceServers: [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' }
-                        ]
-                    });
-
-                    // Setup event handlers
-                    this.peerConnection.onicecandidate = (event) => {
-                        if (event.candidate) {
-                            this.log('ICE candidate generated', 'info', this.isController ? 'controller' : 'receiver');
-                            // In a real implementation, you'd send this via signaling server
-                            this.handleSignalingMessage({
-                                type: 'ice-candidate',
-                                candidate: event.candidate,
-                                from: this.peerId
-                            });
-                        }
-                    };
-
-                    this.peerConnection.onconnectionstatechange = () => {
-                        const state = this.peerConnection.connectionState;
-                        this.log(`Connection state: ${state}`, 'info', this.isController ? 'controller' : 'receiver');
-
-                        if (state === 'connected') {
-                            this.setConnectionStatus(true);
-                        } else if (state === 'disconnected' || state === 'failed') {
-                            this.setConnectionStatus(false);
-                        }
-                    };
-
-                    if (this.isController) {
-                        // Controller creates data channel
-                        this.dataChannel = this.peerConnection.createDataChannel('touchpad', {
-                            ordered: false,
-                            maxRetransmits: 0
-                        });
-                        this.setupDataChannel();
-                    } else {
-                        // Receiver listens for data channel
-                        this.peerConnection.ondatachannel = (event) => {
-                            this.dataChannel = event.channel;
-                            this.setupDataChannel();
-                        };
-                    }
-
-                    // Start real signaling
-                    this.startSignaling();
-
-                } catch (error) {
-                    this.log(`Connection error: ${error.message}`, 'error', this.isController ? 'controller' : 'receiver');
-                }
-            }
-
-            // Real WebRTC signaling using localStorage as a simple message broker
-            async startSignaling() {
-                this.log('Starting signaling process...', 'info', this.isController ? 'controller' : 'receiver');
-
-                if (this.isController) {
-                    // Controller creates offer and stores it
-                    const offer = await this.peerConnection.createOffer();
-                    await this.peerConnection.setLocalDescription(offer);
-
-                    // Store offer in localStorage with room ID
-                    localStorage.setItem(`offer_${this.roomId}`, JSON.stringify({
-                        offer: offer,
-                        timestamp: Date.now()
-                    }));
-
-                    this.log('Offer created and stored', 'success', 'controller');
-
-                    // Listen for answer
-                    this.listenForAnswer();
-
-                } else {
-                    // Receiver looks for offer and creates answer
-                    this.checkForOffer();
-                }
-            }
-
-            listenForAnswer() {
-                const checkAnswer = () => {
-                    const answerData = localStorage.getItem(`answer_${this.roomId}`);
-                    if (answerData) {
-                        const { answer } = JSON.parse(answerData);
-                        this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-                        this.log('Answer received and set', 'success', 'controller');
-                        localStorage.removeItem(`answer_${this.roomId}`);
-                        return;
-                    }
-                    setTimeout(checkAnswer, 1000);
-                };
-                checkAnswer();
-            }
-
-            async checkForOffer() {
-                const checkOffer = async () => {
-                    const offerData = localStorage.getItem(`offer_${this.roomId}`);
-                    if (offerData) {
-                        const { offer } = JSON.parse(offerData);
-
-                        await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-                        this.log('Offer received', 'success', 'receiver');
-
-                        // Create and store answer
-                        const answer = await this.peerConnection.createAnswer();
-                        await this.peerConnection.setLocalDescription(answer);
-
-                        localStorage.setItem(`answer_${this.roomId}`, JSON.stringify({
-                            answer: answer,
-                            timestamp: Date.now()
-                        }));
-
-                        this.log('Answer created and stored', 'success', 'receiver');
-                        localStorage.removeItem(`offer_${this.roomId}`);
-                        return;
-                    }
-                    setTimeout(checkOffer, 1000);
-                };
-                checkOffer();
-            }
-
-            setupDataChannel() {
-                if (!this.dataChannel) return;
-
-                this.dataChannel.onopen = () => {
-                    this.log('Data channel opened', 'success', this.isController ? 'controller' : 'receiver');
-                    this.setConnectionStatus(true);
-                };
-
-                this.dataChannel.onclose = () => {
-                    this.log('Data channel closed', 'warning', this.isController ? 'controller' : 'receiver');
-                    this.setConnectionStatus(false);
-                };
-
-                this.dataChannel.onerror = (error) => {
-                    this.log(`Data channel error: ${error}`, 'error', this.isController ? 'controller' : 'receiver');
-                };
-
-                if (!this.isController) {
-                    this.dataChannel.onmessage = (event) => {
-                        this.handleReceiverMessage(JSON.parse(event.data));
-                    };
-                }
-            }
-
-            setupTouchpadEvents() {
-                const touchpad = this.elements.touchpadArea;
-                let isMoving = false;
-                let lastPos = { x: 0, y: 0 };
-
-                // Mouse events
-                touchpad.addEventListener('mousedown', (e) => {
-                    isMoving = true;
-                    this.handleTouchStart(e.clientX, e.clientY);
-                });
-
-                touchpad.addEventListener('mousemove', (e) => {
-                    if (isMoving) {
-                        this.handleTouchMove(e.clientX, e.clientY);
-                    }
-                    this.updateVirtualCursor(e);
-                });
-
-                touchpad.addEventListener('mouseup', () => {
-                    isMoving = false;
-                    this.handleTouchEnd();
-                });
-
-                // Touch events
-                touchpad.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    this.handleTouchStart(touch.clientX, touch.clientY);
-                    this.showTouchIndicator(touch.clientX, touch.clientY, 1);
-                }, { passive: false });
-
-                touchpad.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    this.handleTouchMove(touch.clientX, touch.clientY);
-                    this.updateVirtualCursor(touch);
-                    this.showTouchIndicator(touch.clientX, touch.clientY, 1);
-                }, { passive: false });
-
-                touchpad.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    this.handleTouchEnd();
-                    this.hideTouchIndicators();
-                });
-
-                // Click/tap detection
-                touchpad.addEventListener('click', (e) => {
-                    this.sendTouchData({
-                        type: 'click',
-                        button: 'left',
-                        x: this.cursor.x,
-                        y: this.cursor.y
-                    });
-                    this.animateClick();
-                });
-            }
-
-            updateVirtualCursor(event) {
-                const rect = this.elements.touchpadArea.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-
-                this.cursor.x = Math.max(0, Math.min(x, rect.width));
-                this.cursor.y = Math.max(0, Math.min(y, rect.height));
-
-                this.elements.virtualCursor.style.left = this.cursor.x + 'px';
-                this.elements.virtualCursor.style.top = this.cursor.y + 'px';
-            }
-
-            showTouchIndicator(x, y, index) {
-                const indicator = this.elements[`touchIndicator${index}`];
-                const rect = this.elements.touchpadArea.getBoundingClientRect();
-                indicator.style.left = (x - rect.left) + 'px';
-                indicator.style.top = (y - rect.top) + 'px';
-                indicator.style.display = 'block';
-            }
-
-            hideTouchIndicators() {
-                this.elements.touchIndicator1.style.display = 'none';
-                this.elements.touchIndicator2.style.display = 'none';
-            }
-
-            handleTouchStart(x, y) {
-                this.touchStartTime = Date.now();
-                this.log(`Touch start at (${Math.round(x)}, ${Math.round(y)})`, 'info', 'controller');
-            }
-
-            handleTouchMove(x, y) {
-                const rect = this.elements.touchpadArea.getBoundingClientRect();
-                const relativeX = (x - rect.left) / rect.width;
-                const relativeY = (y - rect.top) / rect.height;
-
-                this.sendTouchData({
-                    type: 'move',
-                    x: relativeX,
-                    y: relativeY
-                });
-            }
-
-            handleTouchEnd() {
-                const touchDuration = Date.now() - this.touchStartTime;
-                this.log(`Touch end (duration: ${touchDuration}ms)`, 'info', 'controller');
-            }
-
-            animateClick() {
-                this.elements.virtualCursor.style.transform = 'translate(-50%, -50%) scale(0.7)';
-                this.elements.virtualCursor.style.background = '#ef4444';
-
-                setTimeout(() => {
-                    this.elements.virtualCursor.style.transform = 'translate(-50%, -50%) scale(1)';
-                    this.elements.virtualCursor.style.background = 'var(--accent-blue)';
-                }, 150);
-            }
-
-            setupControlButtons() {
-                document.getElementById('leftClickBtn').addEventListener('click', () => {
-                    this.sendTouchData({ type: 'click', button: 'left' });
-                    this.animateClick();
-                });
-
-                document.getElementById('rightClickBtn').addEventListener('click', () => {
-                    this.sendTouchData({ type: 'click', button: 'right' });
-                    this.animateClick();
-                });
-
-                document.getElementById('doubleClickBtn').addEventListener('click', () => {
-                    this.sendTouchData({ type: 'doubleclick' });
-                    this.animateClick();
-                });
-
-                document.getElementById('scrollUpBtn').addEventListener('click', () => {
-                    this.sendTouchData({ type: 'scroll', direction: 'up', amount: 100 });
-                });
-
-                document.getElementById('scrollDownBtn').addEventListener('click', () => {
-                    this.sendTouchData({ type: 'scroll', direction: 'down', amount: 100 });
-                });
-
-                document.getElementById('backBtn').addEventListener('click', () => {
-                    this.sendTouchData({ type: 'key', key: 'back' });
-                });
-            }
-
-            setupReceiverEvents() {
-                // Allow cursor movement within receiver display
-                this.elements.receiverDisplay.addEventListener('mousemove', (e) => {
-                    if (!this.isController) {
-                        const rect = this.elements.receiverDisplay.getBoundingClientRect();
-                        const x = e.clientX - rect.left;
-                        const y = e.clientY - rect.top;
-                        this.updateDisplayCursor(x, y);
-                    }
-                });
-            }
-
-            sendTouchData(data) {
-                if (!this.isConnected || !this.dataChannel || this.dataChannel.readyState !== 'open') {
-                    this.log('Cannot send data: not connected', 'warning', 'controller');
-                    return;
-                }
-
-                try {
-                    this.dataChannel.send(JSON.stringify({
-                        ...data,
-                        timestamp: Date.now(),
-                        source: 'controller'
-                    }));
-                    this.log(`Sent: ${data.type}`, 'info', 'controller');
-                } catch (error) {
-                    this.log(`Send error: ${error.message}`, 'error', 'controller');
-                }
-            }
-
-            handleReceiverMessage(data) {
-                this.log(`Received: ${data.type}`, 'info', 'receiver');
-
-                switch (data.type) {
-                    case 'move':
-                        this.handleCursorMove(data);
-                        break;
-                    case 'click':
-                        this.handleClick(data);
-                        break;
-                    case 'doubleclick':
-                        this.handleDoubleClick(data);
-                        break;
-                    case 'scroll':
-                        this.handleScroll(data);
-                        break;
-                    case 'key':
-                        this.handleKeyPress(data);
-                        break;
-                }
-            }
-
-            handleCursorMove(data) {
-                const rect = this.elements.receiverDisplay.getBoundingClientRect();
-                const x = data.x * rect.width;
-                const y = data.y * rect.height;
-                this.updateDisplayCursor(x, y);
-            }
-
-            updateDisplayCursor(x, y) {
-                this.elements.displayCursor.style.left = x + 'px';
-                this.elements.displayCursor.style.top = y + 'px';
-            }
-
-            handleClick(data) {
-                this.animateDisplayClick();
-                this.log(`${data.button || 'left'} click performed`, 'success', 'receiver');
-
-                // Simulate actual click on webpage elements
-                const rect = this.elements.receiverDisplay.getBoundingClientRect();
-                const x = parseFloat(this.elements.displayCursor.style.left);
-                const y = parseFloat(this.elements.displayCursor.style.top);
-
-                const elementAtPoint = document.elementFromPoint(rect.left + x, rect.top + y);
-                if (elementAtPoint && elementAtPoint.click) {
-                    elementAtPoint.click();
-                }
-            }
-
-            handleDoubleClick(data) {
-                this.animateDisplayClick();
-                setTimeout(() => this.animateDisplayClick(), 200);
-                this.log('Double click performed', 'success', 'receiver');
-            }
-
-            handleScroll(data) {
-                const scrollContainer = this.elements.receiverDisplay;
-                const scrollAmount = data.amount || 100;
-                const direction = data.direction === 'up' ? -1 : 1;
-
-                scrollContainer.scrollTop += (scrollAmount * direction);
-                this.log(`Scrolled ${data.direction} by ${scrollAmount}px`, 'info', 'receiver');
-            }
-
-            handleKeyPress(data) {
-                switch (data.key) {
-                    case 'back':
-                        if (window.history.length > 1) {
-                            window.history.back();
-                        }
-                        this.log('Back navigation triggered', 'info', 'receiver');
-                        break;
-                }
-            }
-
-            animateDisplayClick() {
-                this.elements.displayCursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
-                this.elements.displayCursor.style.background = '#ef4444';
-
-                setTimeout(() => {
-                    this.elements.displayCursor.style.transform = 'translate(-50%, -50%) scale(1)';
-                    this.elements.displayCursor.style.background = 'var(--accent-blue)';
-                }, 150);
-            }
-
-            setConnectionStatus(connected) {
-                this.isConnected = connected;
-                this.elements.statusDot.classList.toggle('connected', connected);
-                this.elements.statusText.textContent = connected ? 'Connected' : 'Disconnected';
-
-                if (connected) {
-                    this.log('Connection established successfully!', 'success', this.isController ? 'controller' : 'receiver');
-                } else {
-                    this.log('Connection lost', 'warning', this.isController ? 'controller' : 'receiver');
-                }
-            }
-
-            handleSignalingMessage(message) {
-                // In a real implementation, this would go through a signaling server
-                this.log(`Signaling: ${message.type}`, 'info', this.isController ? 'controller' : 'receiver');
-            }
-
-            log(message, type = 'info', target = 'both') {
-                const timestamp = new Date().toLocaleTimeString();
-                const logEntry = document.createElement('div');
-                logEntry.className = `log-entry ${type}`;
-                logEntry.textContent = `${timestamp}: ${message}`;
-
-                if (target === 'controller' || target === 'both') {
-                    this.elements.controllerLog.appendChild(logEntry.cloneNode(true));
-                    this.elements.controllerLog.scrollTop = this.elements.controllerLog.scrollHeight;
-                }
-
-                if (target === 'receiver' || target === 'both') {
-                    this.elements.receiverLog.appendChild(logEntry.cloneNode(true));
-                    this.elements.receiverLog.scrollTop = this.elements.receiverLog.scrollHeight;
-                }
-            }
+    <!-- Step 2: LPG Supply -->
+    <div class="form-step hidden animate-fade-in" id="stepContent2">
+      <div class="glass-card rounded-2xl p-8">
+        <h2 class="text-2xl font-bold mb-5 flex items-center"><span class="text-2xl mr-2">🛢️</span> LPG Supply Information</h2>
+        <button type="button" onclick="addCylinderRow()" class="mb-5 py-2 px-4 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow transition">+ Add Cylinder</button>
+        <div id="cylindersContainer" class="flex flex-col"></div>
+        <div class="flex justify-between mt-8">
+          <button type="button" onclick="showStep(1)" class="bg-gray-400 hover:bg-gray-500 px-7 py-2 rounded-lg text-white font-semibold transition">Previous</button>
+          <button type="button" onclick="showStep(3)" class="bg-[#205d68] hover:bg-[#144d54] px-7 py-2 rounded-lg text-white font-semibold transition">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Pricing Information -->
+    <div class="form-step hidden animate-fade-in" id="stepContent3">
+      <div class="glass-card rounded-2xl p-8">
+        <h2 class="text-2xl font-bold mb-5 flex items-center"><span class="text-2xl mr-2">💰</span> Pricing Information</h2>
+        <div class="mb-7">
+          <label class="block font-semibold mb-1" for="yourPrice">Isinkwe Price per kg (excl. VAT):</label>
+          <input type="number" id="yourPrice" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. 38.50"/>
+        </div>
+        <div class="mb-7">
+          <label class="block font-semibold mb-1" for="deliveryFee">Delivery Fee (R):</label>
+          <input type="number" id="deliveryFee" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. 100.00"/>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold mb-2 text-[#25D366]">Cylinder Supplier Pricing</h3>
+          <div id="pricingRows" class="space-y-4"></div>
+        </div>
+        <div class="mt-7">
+          <label class="block font-semibold mb-1" for="cylinderOption">Cylinder Option</label>
+          <select id="cylinderOption" onchange="updateExchangeFields()" class="w-full px-3 py-2 border rounded-lg">
+            <option value="deposit">Pay Deposit</option>
+            <option value="exchange">Exchange</option>
+          </select>
+          <div id="exchangeFields" class="mt-2 hidden">
+            <div class="bg-blue-50 p-3 mt-2 rounded-lg border border-blue-200 text-blue-800 font-medium">
+              PDF & policy applied for exchanges.
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-between mt-8">
+          <button type="button" onclick="showStep(2)" class="bg-gray-400 hover:bg-gray-500 px-7 py-2 rounded-lg text-white font-semibold transition">Previous</button>
+          <button type="button" onclick="showStep(4)" class="bg-[#205d68] hover:bg-[#144d54] px-7 py-2 rounded-lg text-white font-semibold transition">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Results -->
+    <div class="form-step hidden animate-fade-in" id="stepContent4">
+      <div class="glass-card rounded-2xl p-8">
+        <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-2xl mr-2">📊</span> Quote Results & Export</h2>
+        <div class="flex flex-wrap gap-5 items-center mb-5">
+          <button type="button" onclick="calculateAndShowResults()" class="px-6 py-2 rounded bg-gradient-to-r from-green-600 to-teal-400 text-white font-bold shadow hover:from-green-700 hover:to-teal-500 transition">
+            Calculate & Show Results
+          </button>
+          <button type="button" onclick="toggleInclVat()" id="inclVatBtn" class="px-4 py-1 rounded bg-green-600 text-white font-semibold">Incl. VAT</button>
+          <button type="button" onclick="toggleExclVat()" id="exclVatBtn" class="px-4 py-1 rounded bg-blue-600 text-white font-semibold opacity-60">Excl. VAT</button>
+        </div>
+        <div id="resultsDiv"></div>
+        <div class="flex flex-wrap gap-4 justify-between mt-7">
+          <button type="button" onclick="showStep(3)" class="bg-gray-400 hover:bg-gray-500 px-7 py-2 rounded-lg text-white font-semibold transition">Previous</button>
+          <button type="button" onclick="downloadPDF()" class="bg-red-600 hover:bg-red-700 px-7 py-2 rounded-lg text-white font-semibold shadow transition">PDF</button>
+          <button type="button" onclick="sendWhatsApp()" class="bg-[#25D366] hover:bg-[#1da851] px-7 py-2 rounded-lg text-white font-semibold shadow transition">WhatsApp</button>
+          <button type="button" onclick="sendEmail()" class="bg-[#205d68] hover:bg-[#144d54] px-7 py-2 rounded-lg text-white font-semibold shadow transition">Email</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <footer class="text-center mt-12 pb-8 text-gray-600 text-sm">
+    <div>Isinkwe Energies © 2025 | Professional Savings Calculator</div>
+  </footer>
+
+</div>
+
+<script>
+  /*---------------------------------------------
+  STEP NAVIGATION
+  ---------------------------------------------*/
+  let currentStep = 1;
+  function showStep(idx) {
+    for(let i=1; i<=4; i++) {
+      const content = document.getElementById('stepContent' + i);
+      const button = document.getElementById('step'+i);
+      if(i === idx) {
+        content.classList.remove('hidden');
+        button.classList.remove('inactive','completed');
+        button.classList.add('active');
+      } else if (i < idx) {
+        content.classList.add('hidden');
+        button.classList.remove('inactive','active');
+        button.classList.add('completed');
+      } else {
+        content.classList.add('hidden');
+        button.classList.remove('active','completed');
+        button.classList.add('inactive');
+      }
+    }
+    const stepNames = ['','Client Information','LPG Supply Info','Pricing','Quote Results'];
+    document.getElementById('stepText').textContent = stepNames[idx];
+    currentStep = idx;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if(idx === 3) renderPricingRows();
+  }
+  showStep(1);
+
+
+  /*---------------------------------------------
+  MAP & GPS
+  ---------------------------------------------*/
+  let map, marker;
+  function getAddressFromGPS() {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+        const data = await resp.json();
+        document.getElementById('clientAddress').value = data.display_name || `${lat},${lng}`;
+        showMap(lat, lng);
+      } catch(e) {
+        alert("Failed to get address from GPS.");
+      }
+    }, err => { alert("Failed to get position."); });
+  }
+  function showMap(lat, lng) {
+    setTimeout(() => {
+      if(!document.getElementById('leaflet-map')) {
+        const div = document.createElement('div');
+        div.id = 'leaflet-map';
+        div.className = 'map-container mt-2 rounded-lg';
+        document.getElementById('mapDiv').innerHTML = '';
+        document.getElementById('mapDiv').appendChild(div);
+      }
+      if(!map) {
+        map = L.map('leaflet-map').setView([lat, lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      } else {
+        map.setView([lat, lng], 16);
+        if(marker) map.removeLayer(marker);
+      }
+      marker = L.marker([lat, lng]).addTo(map);
+    }, 200);
+  }
+
+
+  /*---------------------------------------------
+  CYLINDER ROWS SETUP
+  ---------------------------------------------*/
+  const VAT_RATE = 0.15;
+  const depositAmounts = { "9": 450, "14": 550, "19": 600, "19-forklift": 700, "48-single": 1050, "48-double": 1050 };
+  let cylinderCounter = 0;
+
+  function addCylinderRow(sizeV, qtyV, ordV) {
+    cylinderCounter++;
+    const ctn = document.getElementById('cylindersContainer');
+    const row = document.createElement('div');
+    row.className = "cylinder-row bg-[#f3faf9] rounded-lg my-2 px-3 py-3 shadow";
+    row.id = `cylinder-${cylinderCounter}`;
+    row.innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-2 items-end">
+        <div>
+          <label class="text-xs font-bold" for="cylinderSize-${cylinderCounter}">Size (kg)</label>
+          <select id="cylinderSize-${cylinderCounter}" class="w-full px-2 py-1 border rounded">
+            <option value="9">9</option>
+            <option value="14">14</option>
+            <option value="19" selected>19</option>
+            <option value="19-forklift">19-Forklift</option>
+            <option value="48-single">48-Single</option>
+            <option value="48-double">48-Double</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold" for="qtyPerOrder-${cylinderCounter}">Qty/Order</label>
+          <input type="number" id="qtyPerOrder-${cylinderCounter}" value="${qtyV||1}" min="1" class="w-full px-2 py-1 border rounded" />
+        </div>
+        <div>
+          <label class="text-xs font-bold" for="ordersPerMonth-${cylinderCounter}">Orders/Mo</label>
+          <input type="number" id="ordersPerMonth-${cylinderCounter}" value="${ordV||1}" min="1" class="w-full px-2 py-1 border rounded" />
+        </div>
+        ${cylinderCounter > 1 ? 
+          `<button type="button" class="text-xs text-red-600 border rounded font-bold py-1 self-start" onclick="removeCylinderRow(${cylinderCounter})">Remove</button>` : ''}
+      </div>`;
+    ctn.appendChild(row);
+    renderPricingRows();
+  }
+  function removeCylinderRow(id) {
+    let row = document.getElementById(`cylinder-${id}`);
+    if(row) row.remove();
+    renderPricingRows();
+  }
+
+
+  /*---------------------------------------------
+  PRICING ROWS - supplier price and per Kg auto calc
+  ---------------------------------------------*/
+  function renderPricingRows() {
+    const pricingCtn = document.getElementById('pricingRows');
+    pricingCtn.innerHTML = '';
+    document.querySelectorAll('.cylinder-row').forEach(row => {
+      const id = row.id.split('-')[1];
+      let old = document.getElementById('supplierTotal-' + id);
+      let oldVal = old ? old.value : '';
+      pricingCtn.innerHTML += `
+        <div class="pricing-row grid sm:grid-cols-5 gap-2 p-3 rounded bg-[#e7f7ff] mb-3 border shadow" data-id="${id}">
+          <div>
+            <label class="text-xs font-bold" for="supplierTotal-${id}">Cylinder Size</label>
+            <div id="sizeLabel-${id}" class="font-medium">${document.getElementById('cylinderSize-' + id).value}kg</div>
+          </div>
+          <div>
+            <label class="text-xs font-bold" for="supplierTotal-${id}">Supplier’s Price<br>(per cylinder)</label>
+            <input type="number" id="supplierTotal-${id}" min="0" step="0.01" value="${oldVal}" placeholder="e.g. 500" class="w-full px-2 py-1 border rounded" onchange="calculateMarketPerKgRow(${id})" />
+            <label class="text-xs whitespace-nowrap mt-1 inline-flex items-center gap-1">
+              <input type="checkbox" id="inclVAT-${id}" onchange="calculateMarketPerKgRow(${id})">Incl. VAT
+            </label>
+          </div>
+          <div>
+            <label class="text-xs font-bold" for="marketPrice-${id}">Supplier Price<br>per kg</label>
+            <input type="number" id="marketPrice-${id}" readonly style="background:#e0e0e0;" class="w-full px-2 py-1 border rounded text-center" />
+          </div>
+        </div>`;
+      calculateMarketPerKgRow(id);
+    });
+  }
+  function calculateMarketPerKgRow(id) {
+    const totalInput = document.getElementById(`supplierTotal-${id}`);
+    const inclVAT = document.getElementById(`inclVAT-${id}`)?.checked;
+    const sizeSel = document.getElementById(`cylinderSize-${id}`);
+    let size = parseFloat(sizeSel.value) || 1;
+    let total = parseFloat(totalInput.value) || 0;
+    document.getElementById(`sizeLabel-${id}`).textContent = sizeSel.value + 'kg';
+    if (total <= 0 || size <= 0) {
+      document.getElementById(`marketPrice-${id}`).value = '';
+      return;
+    }
+    if (inclVAT) total /= (1 + VAT_RATE);
+    const perKg = total / size;
+    document.getElementById(`marketPrice-${id}`).value = perKg.toFixed(2);
+  }
+
+  /*---------------------------------------------
+  EXCHANGE FIELD VISIBILITY TOGGLE
+  ---------------------------------------------*/
+  function updateExchangeFields() {
+    document.getElementById('exchangeFields').classList.toggle('hidden',
+      document.getElementById('cylinderOption').value !== 'exchange');
+  }
+
+  /*---------------------------------------------
+  VAT Toggle Variables & Functions
+  ---------------------------------------------*/
+  let showInclVAT = true;
+  function toggleInclVat() { 
+    showInclVAT = true; 
+    showResultsTable();
+    document.getElementById('inclVatBtn').classList.remove('opacity-60');
+    document.getElementById('exclVatBtn').classList.add('opacity-60');
+  }
+  function toggleExclVat() { 
+    showInclVAT = false; 
+    showResultsTable();
+    document.getElementById('exclVatBtn').classList.remove('opacity-60');
+    document.getElementById('inclVatBtn').classList.add('opacity-60');
+  }
+
+
+  /*---------------------------------------------
+  MAIN CALCULATION & RESULTS GENERATION
+  ---------------------------------------------*/
+  let quoteData = {};
+  function calculateAndShowResults() {
+    const yourPrice = parseFloat(document.getElementById('yourPrice').value) || 0;
+    const deliveryFeeInput = parseFloat(document.getElementById('deliveryFee').value) || 0;
+    const cylinderOption = document.getElementById('cylinderOption').value;
+
+    let depositFee = 0, totalKg = 0;
+    let cylinders = [];
+
+    document.querySelectorAll('.cylinder-row').forEach(row => {
+      const id = row.id.split('-')[1];
+      const sizeStr = document.getElementById(`cylinderSize-${id}`).value;
+      const sizeNum = parseFloat(sizeStr) || 0;
+      const qtyPerOrder = parseInt(document.getElementById(`qtyPerOrder-${id}`).value) || 0;
+      const ordersPerMonth = parseInt(document.getElementById(`ordersPerMonth-${id}`).value) || 0;
+      const marketPrice = parseFloat(document.getElementById(`marketPrice-${id}`).value) || 0;
+
+      if(sizeNum > 0 && qtyPerOrder > 0 && ordersPerMonth > 0 && !isNaN(marketPrice)) {
+        if (cylinderOption === 'deposit') {
+          depositFee += (depositAmounts[sizeStr] || 0) * qtyPerOrder;
         }
+        const qty_total = qtyPerOrder * ordersPerMonth;
+        const kgForThis = sizeNum * qty_total;
+        totalKg += kgForThis;
+        cylinders.push({
+          label: sizeStr + 'kg',
+          size: sizeNum,
+          qtyPerOrder,
+          ordersPerMonth,
+          qty_total,
 
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            new TouchpadRemote();
+          supplierPerKg: marketPrice,
+          ourPerKg: yourPrice,
+
+          supplierUnit: marketPrice * sizeNum,
+          ourUnit: yourPrice * sizeNum,
+
+          supplierTotal: marketPrice * sizeNum * qty_total * (showInclVAT ? 1 + VAT_RATE : 1),
+          ourTotal: yourPrice * sizeNum * qty_total * (showInclVAT ? 1 + VAT_RATE : 1),
         });
+      }
+    });
 
-        // Prevent zoom on iOS
-        document.addEventListener('touchmove', function(event) {
-            if (event.scale !== 1) {
-                event.preventDefault();
-            }
-        }, { passive: false });
+    if (cylinders.length === 0) {
+      document.getElementById('resultsDiv').innerHTML = '<div class="text-red-600 font-semibold text-center">No valid cylinders added.</div>';
+      return;
+    }
 
-        // Prevent default touch behaviors that might interfere
-        document.addEventListener('touchstart', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }, { passive: false });
-    </script>
+    quoteData = {
+      cylinders,
+      totalKg,
+      depositFee,
+      deliveryFee: showInclVAT ? deliveryFeeInput : (deliveryFeeInput / (1 + VAT_RATE)),
+      totals: {
+        supplier: cylinders.reduce((a,b) => a + b.supplierTotal, 0),
+        ours: cylinders.reduce((a,b) => a + b.ourTotal, 0),
+        kg: totalKg,
+      }
+    };
+
+    showResultsTable();
+  }
+
+
+  function showResultsTable() {
+    const q = quoteData;
+    if(!q || !q.cylinders || !q.cylinders.length) {
+      document.getElementById('resultsDiv').innerHTML = '<div class="text-red-600 font-semibold text-center">No valid cylinders to display.</div>';
+      return;
+    }
+    let html = `<div class="mb-3 overflow-x-auto">
+      <table class="cylinder-table" aria-label="Cylinder price comparison">
+        <thead>
+          <tr>
+            <th>Cylinder</th>
+            <th>#/Order</th>
+            <th>Orders/Mo</th>
+            <th>Total Qty</th>
+            <th>Our Price<br>(per kg)</th>
+            <th>Supplier Price<br>(per kg)</th>
+            <th>Our Price<br>(per cylinder)</th>
+            <th>Supplier<br>(per cylinder)</th>
+            <th>Total Our</th>
+            <th>Total Supplier</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+    q.cylinders.forEach(c => {
+      html += `
+        <tr>
+          <td>${c.label}</td>
+          <td>${c.qtyPerOrder}</td>
+          <td>${c.ordersPerMonth}</td>
+          <td>${c.qty_total}</td>
+          <td class="text-green-700 font-bold">R${c.ourPerKg.toFixed(2)}</td>
+          <td class="text-blue-700 font-bold">R${c.supplierPerKg.toFixed(2)}</td>
+          <td>R${c.ourUnit.toFixed(2)}</td>
+          <td>R${c.supplierUnit.toFixed(2)}</td>
+          <td class="font-extrabold">R${c.ourTotal.toFixed(2)}</td>
+          <td class="font-extrabold">R${c.supplierTotal.toFixed(2)}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+
+    html += `
+      <div class="my-4 p-4 rounded shadow bg-green-50 text-lg animate-fade-in text-center">
+        Total LPG: <span class="font-bold">${q.totalKg.toFixed(1)} kg</span><br/>
+        Our Total: <span class="font-bold text-green-700">R${q.totals.ours.toFixed(2)}</span><br/>
+        Supplier Total: <span class="font-bold text-blue-700">R${q.totals.supplier.toFixed(2)}</span><br/>
+        Delivery: <span class="font-bold">R${q.deliveryFee.toFixed(2)}</span> | Deposit: <span class="font-bold">R${q.depositFee.toFixed(2)}</span><br/>
+        <span class="highlight-savings text-xl">You Save: R${(q.totals.supplier - q.totals.ours).toFixed(2)} ${showInclVAT ? "(incl. VAT)" : "(excl. VAT)"}</span>
+      </div>
+    `;
+    document.getElementById('resultsDiv').innerHTML = html;
+  }
+
+
+  /*---------------------------------------------
+  EXPORT FUNCTIONS (PDF, WhatsApp, Email)
+  ---------------------------------------------*/
+  function downloadPDF() {
+    const resultsDiv = document.getElementById('resultsDiv');
+    if(!resultsDiv.innerHTML.trim()) {
+      alert("Please calculate results first.");
+      return;
+    }
+    html2canvas(resultsDiv).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jspdf.jsPDF();
+      pdf.setFontSize(16);
+      pdf.text('Isinkwe Energies LPG Savings Quote', 14, 16);
+      pdf.addImage(imgData, 'PNG', 10, 20, 190, 0);
+      pdf.save('Isinkwe-LPG-Savings.pdf');
+    });
+  }
+  function sendWhatsApp() {
+    const client = document.getElementById('clientName').value.trim() || 'client';
+    const save = quoteData?.totals ? (quoteData.totals.supplier - quoteData.totals.ours).toFixed(2) : '?';
+    const msg = `Hi ${client}, here is your Isinkwe Energies LPG quote. Monthly savings: R${save}. See attached.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+  function sendEmail() {
+    const client = document.getElementById('clientName').value.trim() || 'client';
+    const save = quoteData?.totals ? (quoteData.totals.supplier - quoteData.totals.ours).toFixed(2) : '?';
+    const subj = encodeURIComponent("Isinkwe Energies LPG Savings Quote");
+    const body = encodeURIComponent(`Hi ${client},\n\nHere is your LPG savings calculation. Your monthly savings: R${save}.\n\nIsinkwe Energies`);
+    window.open(`mailto:?subject=${subj}&body=${body}`, '_blank');
+  }
+
+
+  /*---------------------------------------------
+  AUTO-INIT
+  ---------------------------------------------*/
+  addCylinderRow();
+
+</script>
 </body>
 </html>
