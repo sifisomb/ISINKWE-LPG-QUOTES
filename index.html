@@ -1,581 +1,764 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#205d68" />
-  <title>Isinkwe Energies LPG Savings Calculator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- jsPDF and html2canvas for PDF export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Leaflet for map -->
-  <link 
-    rel="stylesheet" 
-    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-    integrity="sha512-xwE/BU6CkMp9fyq8Rf+qchpJXUD0PIGa3xQGKXSe3TJRj3rNAG2opB5r3zZZ9R9M+qKMDzv+w6f8Gc3xRkCJ6w==" 
-    crossorigin=""
-  />
-  <script 
-    src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-    integrity="sha512-gZwIG9x3wUXgL1cf5gB6ziuMJyL8aI1V6eAn6A1O9zR9szCcY6NUq8PzZ+6spGy/v3F1a/NfydspNefx5bWv3g=="
-    crossorigin=""
-  ></script>
+  <title>Isinkwe Energies LPG Savings Calculator - Enhanced</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body { font-family: 'Inter', Arial, sans-serif; }
-    .glass-card { 
-      backdrop-filter: blur(10px); 
-      background: rgba(255,255,255,0.96); 
-      border: 1px solid #e0f7fa; 
-      box-shadow: 0 8px 24px rgb(46 196 182 / 0.2);
+    :root {
+      --primary: #205d68;
+      --primary-light: #2a7a8a;
+      --secondary: #2ec4b6;
+      --accent: #25d366;
+      --warning: #ffb300;
+      --danger: #e74c3c;
+      --success: #27ae60;
+      --light-bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+      --border: #e0e7ed;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --border-radius: 12px;
+      --transition: all 0.3s ease;
     }
-    .step-indicator { 
-      width: 32px; height: 32px; border-radius: 50%; 
-      display: flex; align-items: center; justify-content: center; 
-      font-weight: 700; font-size:1.1rem; 
-      transition: background-color 0.3s, color 0.3s;
+
+    [data-theme="dark"] {
+      --primary: #3498db;
+      --primary-light: #5dade2;
+      --secondary: #2ecc71;
+      --accent: #25d366;
+      --warning: #f1c40f;
+      --danger: #e74c3c;
+      --success: #27ae60;
+      --light-bg: #2c3e50;
+      --card-bg: #34495e;
+      --text: #ecf0f1;
+      --border: #4a6278;
     }
-    .step-indicator.active { 
-      background:#2ec4b6; color:#fff; 
-      box-shadow:0 0 0 2px #fff, 0 2px 8px #2ec4b655;
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .step-indicator.completed { background:#4caf50; color:#fff; }
-    .step-indicator.inactive { background:#e0e0e0; color:#999; }
-    .step-indicator:hover { filter: brightness(1.15); cursor: pointer; }
-    input[readonly] { background:#e7f6f7 !important; }
-    .map-container {
-      width: 100%;
-      height: 210px;
-      border-radius: 11px;
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--light-bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px 15px;
+      transition: var(--transition);
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
       overflow: hidden;
-      box-shadow: 0 1px 8px #2ec4b655;
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    .app-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      padding: 25px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .brand-info {
+      width: 100%;
+      padding: 0 10px;
+    }
+    .brand-name {
+      font-size: 2.3rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .brand-tagline {
+      font-size: 1.15rem;
+      font-weight: 500;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    .business-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 18px;
+      max-width: 500px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+    .business-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    .logo {
+      height: 120px;
+      width: 120px;
+      margin-right: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--light-bg);
+      border-radius: 50%;
+      color: var(--primary);
+    }
+    .logo i {
+        font-size: 4rem;
+    }
+    .business-card-details {
+      text-align: left;
+    }
+    .business-card-name {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+    .business-card-title {
+      font-weight: 600;
+      color: var(--secondary);
+      margin-bottom: 10px;
+    }
+    .business-card-contact {
+      font-size: 0.95rem;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+    .business-card-website {
+      font-weight: 600;
+      color: var(--primary);
       margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .business-card-download {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-top: 10px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .business-card-download:hover {
+      color: var(--secondary);
+      transform: translateX(5px);
+    }
+    .section {
+      margin: 25px;
+      border-radius: var(--border-radius);
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: var(--transition);
+      border: 1px solid var(--border);
+    }
+    .section:hover {
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
+    .section-header {
+      background: var(--light-bg);
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.25rem;
+    }
+    .section-icon {
+      font-size: 1.4rem;
+      color: var(--success);
+    }
+    .toggle-icon {
+      transition: var(--transition);
+      font-size: 1.2rem;
+    }
+    .section-content {
+      padding: 0 25px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease, padding 0.5s ease;
+    }
+    .section-content.active {
+      padding: 25px;
+      max-height: 2000px;
+    }
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--primary);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input,
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: var(--light-bg);
+      color: var(--text);
+      transition: var(--transition);
+      font-family: 'Poppins', sans-serif;
+    }
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 20%, transparent);
+      background: var(--card-bg);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 22px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      white-space: nowrap;
+      width: 100%;
+      margin-top: 8px;
+      font-family: 'Poppins', sans-serif;
+      position: relative;
+    }
+    .btn .spinner {
+        display: none;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        width: 18px;
+        height: 18px;
+        animation: spin 1s ease-in-out infinite;
+    }
+    .btn.loading .btn-text {
+        display: none;
+    }
+    .btn.loading .spinner {
+        display: block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn-primary { background: var(--primary); }
+    .btn-secondary { background: var(--secondary); }
+    .btn-warning { background: var(--warning); color: var(--text); }
+    .btn-danger { background: var(--danger); }
+    .btn-success { background: var(--success); }
+    
+    .main-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .main-actions .btn {
+        flex: 1;
+    }
+
+    .cylinder-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    #cylindersContainer {
+      margin: 20px 0;
+    }
+    .cylinder-row {
+      background: var(--light-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      position: relative;
+      transition: var(--transition);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    }
+    .cylinder-row:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border-color: var(--secondary);
+    }
+    .cylinder-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .cylinder-row-title {
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--success);
+      background: color-mix(in srgb, var(--success) 10%, transparent);
+      padding: 8px 15px;
+      border-radius: 20px;
+    }
+    .cylinder-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+    .results-section {
+      background: linear-gradient(135deg, var(--light-bg) 0%, color-mix(in srgb, var(--success) 5%, transparent) 100%);
+      border-radius: 15px;
+      padding: 30px;
+      color: var(--primary);
+      margin: 25px;
+      box-shadow: var(--shadow);
+      display: none;
+      border: 1px solid color-mix(in srgb, var(--secondary) 20%, transparent);
+    }
+    .view-selection {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      padding: 15px;
+      background: color-mix(in srgb, var(--primary) 5%, transparent);
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+    .view-option {
+      flex: 1;
+      padding: 18px;
+      border-radius: 10px;
+      background: var(--card-bg);
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      border: 2px solid var(--border);
+      transition: var(--transition);
+      min-width: 200px;
+      color: var(--text);
+    }
+    .view-option:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .view-option.active {
+      border-color: var(--secondary);
+      background: color-mix(in srgb, var(--success) 15%, transparent);
+      box-shadow: 0 4px 10px color-mix(in srgb, var(--secondary) 20%, transparent);
+      transform: translateY(-3px);
+    }
+    .view-option i {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      display: block;
+      color: var(--secondary);
+    }
+    .total-block {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 4px 15px color-mix(in srgb, var(--secondary) 20%, transparent);
+      margin-bottom: 30px;
+      text-align: center;
+      border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+    }
+    .total-price {
+      color: var(--secondary);
+      font-weight: 900;
+      font-size: 2.5rem;
+      cursor: pointer;
+      user-select: none;
+      margin: 10px 0;
+      transition: var(--transition);
+      text-shadow: 0 2px 3px rgba(0,0,0,0.1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .total-price:hover {
+      transform: scale(1.05);
+      text-shadow: 0 3px 5px rgba(0,0,0,0.15);
+    }
+    .total-price .vat-toggle {
+      font-size: 1rem;
+      transition: transform 0.3s ease;
+    }
+    .total-price.rotated .vat-toggle {
+      transform: rotate(180deg);
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 25px;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.05rem;
+      text-align: center;
+      margin-top: 25px;
+    }
+    .grid-item {
+      background: color-mix(in srgb, var(--card-bg) 70%, transparent);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .grid-item-label {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: var(--text);
+      opacity: 0.8;
+      font-weight: 600;
     }
     .highlight-savings {
-      background: linear-gradient(45deg, #4caf50, #2ec4b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--secondary);
+      font-size: 1.6rem;
       font-weight: 800;
+      text-shadow: 0 2px 3px rgba(0,0,0,0.1);
     }
-    table.cylinder-table {
-      width: 100%;
-      margin: 0.4rem 0;
-      border-collapse: collapse;
-      font-size: 0.9rem;
+    .cylinder-card {
+      background: var(--light-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 3px 8px color-mix(in srgb, var(--primary) 8%, transparent);
+      color: var(--primary);
+      margin-bottom: 20px;
+      transition: var(--transition);
+      border: 1px solid var(--border);
     }
-    table.cylinder-table th,
-    table.cylinder-table td {
-      border: 1px solid #ddd;
-      padding: 7px;
+    .cylinder-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+    }
+    .cylinder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 18px;
+      font-weight: 600;
+    }
+    .cylinder-grid div {
       text-align: center;
+      padding: 10px;
+      background: color-mix(in srgb, var(--card-bg) 70%, transparent);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      color: var(--text);
     }
-    table.cylinder-table th {
-      background-color: #e0f7fa;
+    .cylinder-price {
+      font-weight: 900;
+      font-size: 1.5rem;
+      color: var(--secondary);
+      margin-top: 5px;
+      display: block;
     }
-    .animate-fade-in {
-      animation: fadeIn 0.7s cubic-bezier(.24,1.63,.56,1);
+    table.savings-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      background: var(--card-bg);
     }
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(24px); }
-      100% { opacity: 1; transform: translateY(0); }
+    table.savings-table th,
+    table.savings-table td {
+      border: 1px solid var(--border);
+      padding: 16px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--text);
+    }
+    table.savings-table th {
+      background-color: color-mix(in srgb, var(--success) 15%, transparent);
+      color: var(--success);
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    table.savings-table tr:nth-child(even) {
+      background-color: var(--light-bg);
+    }
+    .app-footer {
+      text-align: center;
+      padding: 25px;
+      border-top: 1px solid var(--border);
+      color: var(--text);
+      opacity: 0.7;
+      font-size: 0.9rem;
+      background: var(--light-bg);
+      transition: var(--transition);
+    }
+    .input-icon {
+      position: absolute;
+      right: 15px;
+      top: 42px;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+    #commissionPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    #commissionPopup.active {
+      display: block;
+    }
+    #commissionPopup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: var(--danger);
+    }
+    #commissionPopup h3 {
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+    .commission-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 15px;
+    }
+    .commission-item {
+      background: var(--light-bg);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .commission-value {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--success);
+      margin-top: 10px;
+    }
+    .error-message {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 5px;
+      display: none;
+    }
+    #mapPopup {
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      background: #fff;
+      height: 250px;
+      margin-top: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    #mapSnapshot {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+    .explanation-card {
+      background: color-mix(in srgb, var(--warning) 10%, transparent);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0;
+      border-left: 4px solid var(--warning);
+    }
+    .explanation-card h4 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .hint {
+      font-size: 0.85rem;
+      color: var(--text);
+      opacity: 0.8;
+      margin-left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .hint i {
+      color: var(--warning);
+    }
+    
+    /* Dark Mode Toggle */
+    .theme-switch-wrapper {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        top: 25px;
+        right: 25px;
+    }
+    .theme-switch {
+        display: inline-block;
+        height: 24px;
+        position: relative;
+        width: 50px;
+    }
+    .theme-switch input {
+        display:none;
+    }
+    .slider {
+        background-color: #ccc;
+        bottom: 0;
+        cursor: pointer;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .slider:before {
+        background-color: #fff;
+        bottom: 4px;
+        content: "";
+        height: 16px;
+        left: 4px;
+        position: absolute;
+        transition: .4s;
+        width: 16px;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: var(--secondary);
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    .theme-switch-wrapper span {
+        margin-right: 10px;
+        color: white;
+        fon
+
+    @media (min-width: 768px) {
+      .btn { width: auto; }
+      .btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+      }
+      .btn-group .btn { flex: 1; }
+      .app-header {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        text-align: left;
+      }
+      .brand-info {
+        flex: 1;
+        padding: 0 30px;
+      }
+    }
+    @media (max-width: 600px) {
+      .cylinder-fields,
+      .cylinder-grid,
+      .grid-container { grid-template-columns: 1fr; }
+      .section-header { padding: 15px; }
+      .total-price { font-size: 2rem; }
+      .brand-name { font-size: 1.8rem; }
+      .view-selection { flex-direction: column; }
+      .business-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      .logo {
+        margin-bottom: 15px;
+        margin-right: 0;
+      }
+      .app-header { padding: 20px; }
+      .section { margin: 15px; }
+      .theme-switch-wrapper {
+          position: static;
+          margin-top: 20px;
+          justify-content: center;
+      }
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-[#e0f7fa] to-[#f5f5f5] min-h-screen">
-<div class="container mx-auto px-4 py-8 pt-12 max-w-3xl">
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-info">
+        <h1 class="brand-name">Isinkwe Energies</h1>
+        <p class="brand-tagline">Safe. Reliable. Ready.</p>
 
-  <!-- Header/Card and Stepper -->
-  <div class="glass-card rounded-2xl p-8 mb-8 text-center animate-fade-in">
-    <img 
-      src="https://pplx-res.cloudinary.com/image/upload/v1750449704/user_uploads/67820504/80304051-2d83-4eaa-bf47-a9f238882bd2/1000027090.jpg" 
-      class="mx-auto mb-3 rounded-2xl w-32 h-32 object-cover shadow-xl" 
-      alt="Isinkwe Energies Logo" />
-    <h1 class="text-3xl font-bold text-[#205d68] mb-2">Isinkwe Energies</h1>
-    <p class="font-semibold text-lg text-[#2ec4b6]">Safe. Reliable. Ready.</p>
-  </div>
-
-  <!-- STEPPER -->
-  <div class="glass-card rounded-2xl p-6 mb-8 flex justify-between items-center">
-    <div class="flex items-center space-x-4" id="stepper">
-      <button type="button" class="step-indicator active" id="step1" onclick="showStep(1)">1</button>
-      <div class="w-12 h-1 bg-gray-200"></div>
-      <button type="button" class="step-indicator inactive" id="step2" onclick="showStep(2)">2</button>
-      <div class="w-12 h-1 bg-gray-200"></div>
-      <button type="button" class="step-indicator inactive" id="step3" onclick="showStep(3)">3</button>
-      <div class="w-12 h-1 bg-gray-200"></div>
-      <button type="button" class="step-indicator inactive" id="step4" onclick="showStep(4)">4</button>
-    </div>
-    <div class="text-sm text-gray-600 font-medium" id="stepText">Client Information</div>
-  </div>
-
-  <!-- FORM -->
-  <form id="mainForm" autocomplete="off" onsubmit="return false;">
-    <!-- Step 1: Client Information -->
-    <div class="form-step animate-fade-in" id="stepContent1">
-      <div class="glass-card rounded-2xl p-8">
-        <h2 class="text-2xl font-bold mb-5 flex items-center"><span class="text-2xl mr-2">👤</span> Client Information</h2>
-        <div class="grid md:grid-cols-2 gap-6">
-          <div>
-            <label class="block font-semibold mb-1" for="clientName">Client Name</label>
-            <input type="text" id="clientName" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. John Smith" autocomplete="name" />
-          </div>
-          <div>
-            <label class="block font-semibold mb-1" for="businessName">Business Name</label>
-            <input type="text" id="businessName" class="w-full px-3 py-2 border rounded-lg" autocomplete="organization" />
-          </div>
-          <div>
-            <label class="block font-semibold mb-1" for="clientCell">Cell Number</label>
-            <input type="tel" id="clientCell" class="w-full px-3 py-2 border rounded-lg" placeholder="+27 62 123 4567" autocomplete="tel" />
-          </div>
-          <div>
-            <label class="block font-semibold mb-1" for="clientEmail">Email Address</label>
-            <input type="email" id="clientEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="client@email.com" autocomplete="email" />
-          </div>
-          <div class="md:col-span-2">
-            <label class="block font-semibold mb-1" for="clientAddress">Address</label>
-            <div class="flex space-x-2 items-stretch">
-              <input type="text" id="clientAddress" class="flex-1 px-3 py-2 border rounded-lg" placeholder="123 Main Street, Durban" />
-              <button type="button" id="gpsBtn" onclick="getAddressFromGPS()" class="px-4 bg-[#ffb300] text-gray-900 rounded-lg font-semibold hover:bg-[#fca503] transition">📍 GPS</button>
+        <div class="business-card">
+           <div class="logo">
+                <img src="https://pfst.cf2.poecdn.net/base/image/ac9a3844cf713bc96ec0eb10c1c9cf2760524fbf56e176be40c6bc45dd76579d?w=1200&h=1500" alt="Sifiso Brian Mbandlwa" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+           </div>
+          <div class="business-card-details">
+            <div class="business-card-name">Sifiso Brian Mbandlwa</div>
+            <div class="business-card-title">LPG Specialist</div>
+            <div class="business-card-contact">
+              <i class="fas fa-mobile-alt"></i> M: +27 69 946 6588
             </div>
-            <div id="mapDiv"></div>
-          </div>
-        </div>
-        <div class="flex justify-end mt-8">
-          <button type="button" onclick="showStep(2)" class="bg-[#205d68] hover:bg-[#144d54] px-8 py-2 rounded-lg text-white font-semibold transition">Next</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 2: LPG Supply -->
-    <div class="form-step hidden animate-fade-in" id="stepContent2">
-      <div class="glass-card rounded-2xl p-8">
-        <h2 class="text-2xl font-bold mb-5 flex items-center"><span class="text-2xl mr-2">🛢️</span> LPG Supply Information</h2>
-        <button type="button" onclick="addCylinderRow()" class="mb-5 py-2 px-4 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow transition">+ Add Cylinder</button>
-        <div id="cylindersContainer" class="flex flex-col"></div>
-        <div class="flex justify-between mt-8">
-          <button type="button" onclick="showStep(1)" class="bg-gray-400 hover:bg-gray-500 px-7 py-2 rounded-lg text-white font-semibold transition">Previous</button>
-          <button type="button" onclick="showStep(3)" class="bg-[#205d68] hover:bg-[#144d54] px-7 py-2 rounded-lg text-white font-semibold transition">Next</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 3: Pricing Information -->
-    <div class="form-step hidden animate-fade-in" id="stepContent3">
-      <div class="glass-card rounded-2xl p-8">
-        <h2 class="text-2xl font-bold mb-5 flex items-center"><span class="text-2xl mr-2">💰</span> Pricing Information</h2>
-        <div class="mb-7">
-          <label class="block font-semibold mb-1" for="yourPrice">Isinkwe Price per kg (excl. VAT):</label>
-          <input type="number" id="yourPrice" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. 38.50"/>
-        </div>
-        <div class="mb-7">
-          <label class="block font-semibold mb-1" for="deliveryFee">Delivery Fee (R):</label>
-          <input type="number" id="deliveryFee" min="0" step="0.01" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. 100.00"/>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold mb-2 text-[#25D366]">Cylinder Supplier Pricing</h3>
-          <div id="pricingRows" class="space-y-4"></div>
-        </div>
-        <div class="mt-7">
-          <label class="block font-semibold mb-1" for="cylinderOption">Cylinder Option</label>
-          <select id="cylinderOption" onchange="updateExchangeFields()" class="w-full px-3 py-2 border rounded-lg">
-            <option value="deposit">Pay Deposit</option>
-            <option value="exchange">Exchange</option>
-          </select>
-          <div id="exchangeFields" class="mt-2 hidden">
-            <div class="bg-blue-50 p-3 mt-2 rounded-lg border border-blue-200 text-blue-800 font-medium">
-              PDF & policy applied for exchanges.
-            </div>
-          </div>
-        </div>
-        <div class="flex justify-between mt-8">
-          <button type="button" onclick="showStep(2)" class="bg-gray-400 hover:bg-gray-500 px-7 py-2 rounded-lg text-white font-semibold transition">Previous</button>
-          <button type="button" onclick="showStep(4)" class="bg-[#205d68] hover:bg-[#144d54] px-7 py-2 rounded-lg text-white font-semibold transition">Next</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 4: Results -->
-    <div class="form-step hidden animate-fade-in" id="stepContent4">
-      <div class="glass-card rounded-2xl p-8">
-        <h2 class="text-2xl font-bold mb-4 flex items-center"><span class="text-2xl mr-2">📊</span> Quote Results & Export</h2>
-        <div class="flex flex-wrap gap-5 items-center mb-5">
-          <button type="button" onclick="calculateAndShowResults()" class="px-6 py-2 rounded bg-gradient-to-r from-green-600 to-teal-400 text-white font-bold shadow hover:from-green-700 hover:to-teal-500 transition">
-            Calculate & Show Results
-          </button>
-          <button type="button" onclick="toggleInclVat()" id="inclVatBtn" class="px-4 py-1 rounded bg-green-600 text-white font-semibold">Incl. VAT</button>
-          <button type="button" onclick="toggleExclVat()" id="exclVatBtn" class="px-4 py-1 rounded bg-blue-600 text-white font-semibold opacity-60">Excl. VAT</button>
-        </div>
-        <div id="resultsDiv"></div>
-        <div class="flex flex-wrap gap-4 justify-between mt-7">
-          <button type="button" onclick="showStep(3)" class="bg-gray-400 hover:bg-gray-500 px-7 py-2 rounded-lg text-white font-semibold transition">Previous</button>
-          <button type="button" onclick="downloadPDF()" class="bg-red-600 hover:bg-red-700 px-7 py-2 rounded-lg text-white font-semibold shadow transition">PDF</button>
-          <button type="button" onclick="sendWhatsApp()" class="bg-[#25D366] hover:bg-[#1da851] px-7 py-2 rounded-lg text-white font-semibold shadow transition">WhatsApp</button>
-          <button type="button" onclick="sendEmail()" class="bg-[#205d68] hover:bg-[#144d54] px-7 py-2 rounded-lg text-white font-semibold shadow transition">Email</button>
-        </div>
-      </div>
-    </div>
-  </form>
-
-  <footer class="text-center mt-12 pb-8 text-gray-600 text-sm">
-    <div>Isinkwe Energies © 2025 | Professional Savings Calculator</div>
-  </footer>
-
-</div>
-
-<script>
-  /*---------------------------------------------
-  STEP NAVIGATION
-  ---------------------------------------------*/
-  let currentStep = 1;
-  function showStep(idx) {
-    for(let i=1; i<=4; i++) {
-      const content = document.getElementById('stepContent' + i);
-      const button = document.getElementById('step'+i);
-      if(i === idx) {
-        content.classList.remove('hidden');
-        button.classList.remove('inactive','completed');
-        button.classList.add('active');
-      } else if (i < idx) {
-        content.classList.add('hidden');
-        button.classList.remove('inactive','active');
-        button.classList.add('completed');
-      } else {
-        content.classList.add('hidden');
-        button.classList.remove('active','completed');
-        button.classList.add('inactive');
-      }
-    }
-    const stepNames = ['','Client Information','LPG Supply Info','Pricing','Quote Results'];
-    document.getElementById('stepText').textContent = stepNames[idx];
-    currentStep = idx;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if(idx === 3) renderPricingRows();
-  }
-  showStep(1);
-
-
-  /*---------------------------------------------
-  MAP & GPS
-  ---------------------------------------------*/
-  let map, marker;
-  function getAddressFromGPS() {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(async pos => {
-      const lat = pos.coords.latitude, lng = pos.coords.longitude;
-      try {
-        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
-        const data = await resp.json();
-        document.getElementById('clientAddress').value = data.display_name || `${lat},${lng}`;
-        showMap(lat, lng);
-      } catch(e) {
-        alert("Failed to get address from GPS.");
-      }
-    }, err => { alert("Failed to get position."); });
-  }
-  function showMap(lat, lng) {
-    setTimeout(() => {
-      if(!document.getElementById('leaflet-map')) {
-        const div = document.createElement('div');
-        div.id = 'leaflet-map';
-        div.className = 'map-container mt-2 rounded-lg';
-        document.getElementById('mapDiv').innerHTML = '';
-        document.getElementById('mapDiv').appendChild(div);
-      }
-      if(!map) {
-        map = L.map('leaflet-map').setView([lat, lng], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      } else {
-        map.setView([lat, lng], 16);
-        if(marker) map.removeLayer(marker);
-      }
-      marker = L.marker([lat, lng]).addTo(map);
-    }, 200);
-  }
-
-
-  /*---------------------------------------------
-  CYLINDER ROWS SETUP
-  ---------------------------------------------*/
-  const VAT_RATE = 0.15;
-  const depositAmounts = { "9": 450, "14": 550, "19": 600, "19-forklift": 700, "48-single": 1050, "48-double": 1050 };
-  let cylinderCounter = 0;
-
-  function addCylinderRow(sizeV, qtyV, ordV) {
-    cylinderCounter++;
-    const ctn = document.getElementById('cylindersContainer');
-    const row = document.createElement('div');
-    row.className = "cylinder-row bg-[#f3faf9] rounded-lg my-2 px-3 py-3 shadow";
-    row.id = `cylinder-${cylinderCounter}`;
-    row.innerHTML = `
-      <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-2 items-end">
-        <div>
-          <label class="text-xs font-bold" for="cylinderSize-${cylinderCounter}">Size (kg)</label>
-          <select id="cylinderSize-${cylinderCounter}" class="w-full px-2 py-1 border rounded">
-            <option value="9">9</option>
-            <option value="14">14</option>
-            <option value="19" selected>19</option>
-            <option value="19-forklift">19-Forklift</option>
-            <option value="48-single">48-Single</option>
-            <option value="48-double">48-Double</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold" for="qtyPerOrder-${cylinderCounter}">Qty/Order</label>
-          <input type="number" id="qtyPerOrder-${cylinderCounter}" value="${qtyV||1}" min="1" class="w-full px-2 py-1 border rounded" />
-        </div>
-        <div>
-          <label class="text-xs font-bold" for="ordersPerMonth-${cylinderCounter}">Orders/Mo</label>
-          <input type="number" id="ordersPerMonth-${cylinderCounter}" value="${ordV||1}" min="1" class="w-full px-2 py-1 border rounded" />
-        </div>
-        ${cylinderCounter > 1 ? 
-          `<button type="button" class="text-xs text-red-600 border rounded font-bold py-1 self-start" onclick="removeCylinderRow(${cylinderCounter})">Remove</button>` : ''}
-      </div>`;
-    ctn.appendChild(row);
-    renderPricingRows();
-  }
-  function removeCylinderRow(id) {
-    let row = document.getElementById(`cylinder-${id}`);
-    if(row) row.remove();
-    renderPricingRows();
-  }
-
-
-  /*---------------------------------------------
-  PRICING ROWS - supplier price and per Kg auto calc
-  ---------------------------------------------*/
-  function renderPricingRows() {
-    const pricingCtn = document.getElementById('pricingRows');
-    pricingCtn.innerHTML = '';
-    document.querySelectorAll('.cylinder-row').forEach(row => {
-      const id = row.id.split('-')[1];
-      let old = document.getElementById('supplierTotal-' + id);
-      let oldVal = old ? old.value : '';
-      pricingCtn.innerHTML += `
-        <div class="pricing-row grid sm:grid-cols-5 gap-2 p-3 rounded bg-[#e7f7ff] mb-3 border shadow" data-id="${id}">
-          <div>
-            <label class="text-xs font-bold" for="supplierTotal-${id}">Cylinder Size</label>
-            <div id="sizeLabel-${id}" class="font-medium">${document.getElementById('cylinderSize-' + id).value}kg</div>
-          </div>
-          <div>
-            <label class="text-xs font-bold" for="supplierTotal-${id}">Supplier’s Price<br>(per cylinder)</label>
-            <input type="number" id="supplierTotal-${id}" min="0" step="0.01" value="${oldVal}" placeholder="e.g. 500" class="w-full px-2 py-1 border rounded" onchange="calculateMarketPerKgRow(${id})" />
-            <label class="text-xs whitespace-nowrap mt-1 inline-flex items-center gap-1">
-              <input type="checkbox" id="inclVAT-${id}" onchange="calculateMarketPerKgRow(${id})">Incl. VAT
-            </label>
-          </div>
-          <div>
-            <label class="text-xs font-bold" for="marketPrice-${id}">Supplier Price<br>per kg</label>
-            <input type="number" id="marketPrice-${id}" readonly style="background:#e0e0e0;" class="w-full px-2 py-1 border rounded text-center" />
-          </div>
-        </div>`;
-      calculateMarketPerKgRow(id);
-    });
-  }
-  function calculateMarketPerKgRow(id) {
-    const totalInput = document.getElementById(`supplierTotal-${id}`);
-    const inclVAT = document.getElementById(`inclVAT-${id}`)?.checked;
-    const sizeSel = document.getElementById(`cylinderSize-${id}`);
-    let size = parseFloat(sizeSel.value) || 1;
-    let total = parseFloat(totalInput.value) || 0;
-    document.getElementById(`sizeLabel-${id}`).textContent = sizeSel.value + 'kg';
-    if (total <= 0 || size <= 0) {
-      document.getElementById(`marketPrice-${id}`).value = '';
-      return;
-    }
-    if (inclVAT) total /= (1 + VAT_RATE);
-    const perKg = total / size;
-    document.getElementById(`marketPrice-${id}`).value = perKg.toFixed(2);
-  }
-
-  /*---------------------------------------------
-  EXCHANGE FIELD VISIBILITY TOGGLE
-  ---------------------------------------------*/
-  function updateExchangeFields() {
-    document.getElementById('exchangeFields').classList.toggle('hidden',
-      document.getElementById('cylinderOption').value !== 'exchange');
-  }
-
-  /*---------------------------------------------
-  VAT Toggle Variables & Functions
-  ---------------------------------------------*/
-  let showInclVAT = true;
-  function toggleInclVat() { 
-    showInclVAT = true; 
-    showResultsTable();
-    document.getElementById('inclVatBtn').classList.remove('opacity-60');
-    document.getElementById('exclVatBtn').classList.add('opacity-60');
-  }
-  function toggleExclVat() { 
-    showInclVAT = false; 
-    showResultsTable();
-    document.getElementById('exclVatBtn').classList.remove('opacity-60');
-    document.getElementById('inclVatBtn').classList.add('opacity-60');
-  }
-
-
-  /*---------------------------------------------
-  MAIN CALCULATION & RESULTS GENERATION
-  ---------------------------------------------*/
-  let quoteData = {};
-  function calculateAndShowResults() {
-    const yourPrice = parseFloat(document.getElementById('yourPrice').value) || 0;
-    const deliveryFeeInput = parseFloat(document.getElementById('deliveryFee').value) || 0;
-    const cylinderOption = document.getElementById('cylinderOption').value;
-
-    let depositFee = 0, totalKg = 0;
-    let cylinders = [];
-
-    document.querySelectorAll('.cylinder-row').forEach(row => {
-      const id = row.id.split('-')[1];
-      const sizeStr = document.getElementById(`cylinderSize-${id}`).value;
-      const sizeNum = parseFloat(sizeStr) || 0;
-      const qtyPerOrder = parseInt(document.getElementById(`qtyPerOrder-${id}`).value) || 0;
-      const ordersPerMonth = parseInt(document.getElementById(`ordersPerMonth-${id}`).value) || 0;
-      const marketPrice = parseFloat(document.getElementById(`marketPrice-${id}`).value) || 0;
-
-      if(sizeNum > 0 && qtyPerOrder > 0 && ordersPerMonth > 0 && !isNaN(marketPrice)) {
-        if (cylinderOption === 'deposit') {
-          depositFee += (depositAmounts[sizeStr] || 0) * qtyPerOrder;
-        }
-        const qty_total = qtyPerOrder * ordersPerMonth;
-        const kgForThis = sizeNum * qty_total;
-        totalKg += kgForThis;
-        cylinders.push({
-          label: sizeStr + 'kg',
-          size: sizeNum,
-          qtyPerOrder,
-          ordersPerMonth,
-          qty_total,
-
-          supplierPerKg: marketPrice,
-          ourPerKg: yourPrice,
-
-          supplierUnit: marketPrice * sizeNum,
-          ourUnit: yourPrice * sizeNum,
-
-          supplierTotal: marketPrice * sizeNum * qty_total * (showInclVAT ? 1 + VAT_RATE : 1),
-          ourTotal: yourPrice * sizeNum * qty_total * (showInclVAT ? 1 + VAT_RATE : 1),
-        });
-      }
-    });
-
-    if (cylinders.length === 0) {
-      document.getElementById('resultsDiv').innerHTML = '<div class="text-red-600 font-semibold text-center">No valid cylinders added.</div>';
-      return;
-    }
-
-    quoteData = {
-      cylinders,
-      totalKg,
-      depositFee,
-      deliveryFee: showInclVAT ? deliveryFeeInput : (deliveryFeeInput / (1 + VAT_RATE)),
-      totals: {
-        supplier: cylinders.reduce((a,b) => a + b.supplierTotal, 0),
-        ours: cylinders.reduce((a,b) => a + b.ourTotal, 0),
-        kg: totalKg,
-      }
-    };
-
-    showResultsTable();
-  }
-
-
-  function showResultsTable() {
-    const q = quoteData;
-    if(!q || !q.cylinders || !q.cylinders.length) {
-      document.getElementById('resultsDiv').innerHTML = '<div class="text-red-600 font-semibold text-center">No valid cylinders to display.</div>';
-      return;
-    }
-    let html = `<div class="mb-3 overflow-x-auto">
-      <table class="cylinder-table" aria-label="Cylinder price comparison">
-        <thead>
-          <tr>
-            <th>Cylinder</th>
-            <th>#/Order</th>
-            <th>Orders/Mo</th>
-            <th>Total Qty</th>
-            <th>Our Price<br>(per kg)</th>
-            <th>Supplier Price<br>(per kg)</th>
-            <th>Our Price<br>(per cylinder)</th>
-            <th>Supplier<br>(per cylinder)</th>
-            <th>Total Our</th>
-            <th>Total Supplier</th>
-          </tr>
-        </thead>
-        <tbody>`;
-
-    q.cylinders.forEach(c => {
-      html += `
-        <tr>
-          <td>${c.label}</td>
-          <td>${c.qtyPerOrder}</td>
-          <td>${c.ordersPerMonth}</td>
-          <td>${c.qty_total}</td>
-          <td class="text-green-700 font-bold">R${c.ourPerKg.toFixed(2)}</td>
-          <td class="text-blue-700 font-bold">R${c.supplierPerKg.toFixed(2)}</td>
-          <td>R${c.ourUnit.toFixed(2)}</td>
-          <td>R${c.supplierUnit.toFixed(2)}</td>
-          <td class="font-extrabold">R${c.ourTotal.toFixed(2)}</td>
-          <td class="font-extrabold">R${c.supplierTotal.toFixed(2)}</td>
-        </tr>`;
-    });
-
-    html += `</tbody></table></div>`;
-
-    html += `
-      <div class="my-4 p-4 rounded shadow bg-green-50 text-lg animate-fade-in text-center">
-        Total LPG: <span class="font-bold">${q.totalKg.toFixed(1)} kg</span><br/>
-        Our Total: <span class="font-bold text-green-700">R${q.totals.ours.toFixed(2)}</span><br/>
-        Supplier Total: <span class="font-bold text-blue-700">R${q.totals.supplier.toFixed(2)}</span><br/>
-        Delivery: <span class="font-bold">R${q.deliveryFee.toFixed(2)}</span> | Deposit: <span class="font-bold">R${q.depositFee.toFixed(2)}</span><br/>
-        <span class="highlight-savings text-xl">You Save: R${(q.totals.supplier - q.totals.ours).toFixed(2)} ${showInclVAT ? "(incl. VAT)" : "(excl. VAT)"}</span>
-      </div>
-    `;
-    document.getElementById('resultsDiv').innerHTML = html;
-  }
-
-
-  /*---------------------------------------------
-  EXPORT FUNCTIONS (PDF, WhatsApp, Email)
-  ---------------------------------------------*/
-  function downloadPDF() {
-    const resultsDiv = document.getElementById('resultsDiv');
-    if(!resultsDiv.innerHTML.trim()) {
-      alert("Please calculate results first.");
-      return;
-    }
-    html2canvas(resultsDiv).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jspdf.jsPDF();
-      pdf.setFontSize(16);
-      pdf.text('Isinkwe Energies LPG Savings Quote', 14, 16);
-      pdf.addImage(imgData, 'PNG', 10, 20, 190, 0);
-      pdf.save('Isinkwe-LPG-Savings.pdf');
-    });
-  }
-  function sendWhatsApp() {
-    const client = document.getElementById('clientName').value.trim() || 'client';
-    const save = quoteData?.totals ? (quoteData.totals.supplier - quoteData.totals.ours).toFixed(2) : '?';
-    const msg = `Hi ${client}, here is your Isinkwe Energies LPG quote. Monthly savings: R${save}. See attached.`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-  }
-  function sendEmail() {
-    const client = document.getElementById('clientName').value.trim() || 'client';
-    const save = quoteData?.totals ? (quoteData.totals.supplier - quoteData.totals.ours).toFixed(2) : '?';
-    const subj = encodeURIComponent("Isinkwe Energies LPG Savings Quote");
-    const body = encodeURIComponent(`Hi ${client},\n\nHere is your LPG savings calculation. Your monthly savings: R${save}.\n\nIsinkwe Energies`);
-    window.open(`mailto:?subject=${subj}&body=${body}`, '_blank');
-  }
-
-
-  /*---------------------------------------------
-  AUTO-INIT
-  ---------------------------------------------*/
-  addCylinderRow();
-
-</script>
-</body>
-</html>
+            <div class="business-card-contact">
+              <i class
